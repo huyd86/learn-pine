@@ -1,0 +1,27 @@
+//=== Single-line functions ===
+f(x, y) => x + y
+
+a = f(open, close)
+b = f(2, 2)
+c = f(open, 2)
+
+
+
+//=== Multi-line functions ===
+geom_average(x, y) =>
+    a = x*x
+    b = y*y
+    sqrt(a + b)
+
+
+
+//=== Functions that return multiple results ===
+fun(x, y) =>
+    a = x+y
+    b = x-y
+    [a, b]
+
+// Special syntax is required for calling such functions:
+[res0, res1] = fun(open, close)
+plot(res0)
+plot(res1)

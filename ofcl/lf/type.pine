@@ -1,0 +1,139 @@
+//=== Const ===
+
+c1 = 0
+c2 = c1 + 1
+c3 = c1 + 1
+if open > close
+    c3 := 0
+
+// c1 is const
+// c2 is const
+// c3 is series
+
+//=== Input ===
+
+p = input(10, title="Period")
+
+//=== Series ===
+
+a = open + close // Addition of two series
+b = high / 2     // Division of a series variable by
+                 // an integer literal constant
+c = close[1]     // Referring to the previous ``close`` value
+
+//=== Fundamental types
+
+// int
+1
+750
+94572
+100
+
+// float
+3.14159    // 3.14159
+6.02e23    // 6.02 * 10^23
+1.6e-19    // 1.6 * 10^-19
+3.0        // 3.0
+
+// bool
+true    // true value
+false   // false value
+
+// color
+#000000                // black color
+#FF0000                // red color
+#00FF00                // green color
+#0000FF                // blue color
+#FFFFFF                // white color
+#808080                // gray color
+#3ff7a0                // some custom color
+#FF000080              // 50% transparent red color
+#FF0000FF              // same as #FF0000, fully opaque red color
+#FF000000              // completely transparent color
+
+// One might ask how a value can be of type input color if it is impossible to use input to input a color in Pine. 
+// The answer is: through an arithmetic expression with other input types and color literals/constants. For example:
+b = input(true, "Use red color")
+c = b ? color.red : #000000  // c has color input type
+
+// It is possible to change the transparency of the color using a built-in function color.new.
+// Here is an example:
+
+//@version=4
+study(title="Shading the chart's background", overlay=true)
+c = color.navy
+bgColor = (dayofweek == dayofweek.monday) ? color.new(c, 50) :
+          (dayofweek == dayofweek.tuesday) ? color.new(c, 60) :
+          (dayofweek == dayofweek.wednesday) ? color.new(c, 70) :
+          (dayofweek == dayofweek.thursday) ? color.new(c, 80) :
+          (dayofweek == dayofweek.friday) ? color.new(c, 90) :
+          color.new(color.blue, 80)
+bgcolor(color=bgColor)
+
+// string
+"This is a double quoted string literal"
+'This is a single quoted string literal'
+
+// Single and double quotation marks are functionally equivalent. 
+// A string enclosed within double quotation marks may contain any number of single quotation marks, and vice versa:
+"It's an example"
+'The "Star" indicator'
+
+// If you need to enclose the string’s delimiter in the string, it must be preceded by a backslash. For example:
+'It\'s an example'
+"The \"Star\" indicator"
+
+//=== Array ===
+
+int[]
+float[]
+bool[]
+color[]
+
+//=== void ===
+// There is a void type in Pine Script. Most functions and annotation functions which produce a side effect return a void result. E.g., strategy.entry, plotshape etc.
+// A void result cannot be used in any arithmetic expression or be assigned to a variable.
+
+//=== na value ===
+
+myVar = na // Compilation error!
+
+float myVar = na
+myVar = float(na)
+
+// to test if some value is not available, a special function must be used: na. For example:
+myClose = na(myVar) ? 0 : close
+// Do not use the operator == to test for na values, as this is not guaranteed to work.
+
+//=== Tuples ===
+
+calcSumAndMul(a, b) =>
+    sum = a + b
+    mul = a * b
+    [sum, mul]
+
+[s, m] = calcSumAndMul(high, low)
+
+//=== Type casting ===
+
+//@version=4
+study("My Script")
+plotshape(series=close)
+// The type of the series parameter of the plotshape function is series bool. 
+// But the function is called with the close argument of type series float. 
+// The types do not match, but an automatic type-casting rule series float → series bool (see the diagram) does the proper conversion.
+
+//@version=4
+study("My Script")
+len = 10.0
+s = sma(close, len) // Compilation error!
+plot(s)
+
+// There is no automatic type casting from const float to integer, but an explicit type-casting function can be used:
+
+//@version=4
+study("My Script")
+len = 10.0
+s = sma(close, int(len))
+plot(s)
+
