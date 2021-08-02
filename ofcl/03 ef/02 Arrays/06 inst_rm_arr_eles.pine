@@ -1,0 +1,91 @@
+//=== inserting
+
+//@version=4
+study("`array.insert()`")
+a = array.new_float(5, 0)
+for _i = 0 to 4
+    array.set(a, _i, _i + 1)
+if barstate.islast
+    label.new(bar_index, 0, "BEFORE\na: " + tostring(a), size = size.large)
+    array.insert(a, 2, 999)
+    label.new(bar_index, 0, "AFTER\na: " + tostring(a), style = label.style_label_up, size = size.large)
+
+
+
+//=== removing
+
+// array.remove() removes the element at the index value used, and returns that element’s value.
+// array.shift() removes the first element from an array and returns its value.
+// array.pop() removes the last element of an array and returns its value.
+// array.clear() will remove all elements in the array.
+
+
+
+//=== Using an array as a stack
+
+//@version=4
+study("Lows from new highs", "", true)
+var lows = array.new_float(0)
+flushLows = false
+
+// Remove last element from the stack when `_cond` is true.
+f_array_pop(_id, _cond) => _cond and array.size(_id) > 0 ? array.pop(_id) : float(na)
+
+if rising(high, 1)
+    // Rising highs; push a new low on the stack.
+    array.push(lows, low)
+    // Force the return type of this `if` block to be the same as that of the next block.
+    bool(na)
+else if array.size(lows) >= 4 or low < array.min(lows)
+    // We have at least 4 lows or price has breached the lowest low;
+    // sort lows and set flag indicating we will plot and flush the levels.
+    array.sort(lows, order.ascending)
+    flushLows := true
+
+// If needed, plot and flush lows.
+lowLevel = f_array_pop(lows, flushLows)
+plot(lowLevel, "Low 1", low > lowLevel ? color.silver : color.purple, 2, plot.style_linebr)
+lowLevel := f_array_pop(lows, flushLows)
+plot(lowLevel, "Low 2", low > lowLevel ? color.silver : color.purple, 3, plot.style_linebr)
+lowLevel := f_array_pop(lows, flushLows)
+plot(lowLevel, "Low 3", low > lowLevel ? color.silver : color.purple, 4, plot.style_linebr)
+lowLevel := f_array_pop(lows, flushLows)
+plot(lowLevel, "Low 4", low > lowLevel ? color.silver : color.purple, 5, plot.style_linebr)
+
+if flushLows
+    // Clear remaining levels after the last 4 have been plotted.
+    array.clear(lows)
+
+
+
+//=== Using an array as a queue
+
+//@version=4
+MAX_LABELS = 100
+study("Show Last n High Pivots", "", true, max_labels_count = MAX_LABELS)
+
+i_pivotCount = input(5, "How many pivots to show", minval = 0, maxval = MAX_LABELS)
+i_pivotLegs  = input(3, "Pivot legs", minval = 1, maxval = 5)
+
+// Format price to tick precision.
+f_tickFormat() =>
+    _s = tostring(syminfo.mintick)
+    _s := str.replace_all(_s, "25", "00")
+    _s := str.replace_all(_s, "5",  "0")
+    _s := str.replace_all(_s, "1",  "0")
+
+// Create an array containing the user-selected max count of label ids.
+var labelIds = array.new_label(i_pivotCount)
+
+pHi = pivothigh(i_pivotLegs, i_pivotLegs)
+if not na(pHi)
+    // New pivot found; plot its label `i_pivotLegs` bars back.
+    pLabel = label.new(bar_index[i_pivotLegs], pHi, tostring(pHi, f_tickFormat()), textcolor = color.white)
+    // Queue the new label's id by appending it to the end of the array.
+    array.push(labelIds, pLabel)
+    // De-queue the oldest label id from the queue and delete the corresponding label.
+    label.delete(array.shift(labelIds))
+
+
+
+
