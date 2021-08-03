@@ -1,0 +1,41 @@
+//=== Index xx is out of bounds. Array size is yy
+
+//@version=4
+study("Protected array size")
+i_size = input(10, "Array size", minval = 1, maxval = 100000)
+a = array.new_float(i_size)
+for _i = 0 to i_size - 1
+    array.set(a, _i, _i)
+plot(array.size(a))
+
+
+
+//=== Cannot call array methods when id of array is ‘na’
+
+//@version=4
+study("Out of bounds index")
+int[] a = na
+array.push(a, 111)
+label.new(bar_index, 0, "a: " + tostring(a))
+
+
+
+//=== Array is too large. Maximum size is 100000
+
+//=== Cannot create an array with a negative size¶
+
+//=== Cannot use shift() if array is empty.
+
+//=== Cannot use pop() if array is empty.
+
+//=== Index ‘from’ should be less than index ‘to’
+
+//=== Slice is out of bounds of the parent array
+
+//@version=4
+study("Slice out of bounds")
+a = array.new_float(5, 0)
+b = array.slice(a, 3, 5)
+array.remove(a, 0)
+c = array.indexof(b, 2)
+plot(c)
