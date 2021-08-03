@@ -1,0 +1,26 @@
+// A set of built-in variables of the barstate namespace allows users to define the bar states for which scripts actions are performed:
+
+// barstate.isfirst — true if the current bar is the first in the whole range of bars available, false otherwise.
+// barstate.islast — true if the current bar is the last in the whole range of bars available, false otherwise. This flag helps to detect the last historical bar.
+// barstate.ishistory — true if the current data update is a historical bar update, false otherwise (thus it is realtime).
+// barstate.isrealtime — true if the current data update is a real-time bar update, false otherwise (thus it is historical). Note that every realtime bar is also the last one.
+// barstate.isnew — true if the current data update is the first (opening) update of a new bar, false otherwise.
+// barstate.isconfirmed — true if the current data update is the last (closing) update of the current bar, false otherwise. The next data update will be an opening update of a new bar [1].
+// barstate.islastconfirmedhistory — true if script is executing on the dataset’s last bar when market is closed, or script is executing on the bar immediately preceding the real-time bar, if market is open. Returns false otherwise.
+
+//@version=4
+study("Bar States", overlay = true)
+first = barstate.isfirst
+last = barstate.islast
+
+hist = barstate.ishistory
+rt = barstate.isrealtime
+
+new = barstate.isnew
+conf = barstate.isconfirmed
+
+t = new ? "new" : conf ? "conf" : "intra-bar"
+t := t + (hist ? "\nhist" : rt ? "\nrt" : "")
+t := t + (first ? "\nfirst" : last ? "\nlast" : "")
+label.new(bar_index, na, yloc=yloc.abovebar, text=t,
+          color=hist ? color.green : color.red)
