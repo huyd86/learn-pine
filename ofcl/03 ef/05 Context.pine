@@ -1,0 +1,57 @@
+//=== Context switching and the security function
+
+// Let’s assume the following script is running on an IBM chart at 1 minute. It will display the close price of the IBM symbol, but at 15 minutes resolution.
+
+//@version=4
+study("Example security 1", overlay=true)
+ibm_15 = security("NYSE:IBM", "15", close)
+plot(ibm_15)
+
+//@version=4
+study(title="High Time Frame MA", overlay=true)
+src = close, len = 9
+out = sma(src, len)
+out1 = security(syminfo.tickerid, 'D', out)
+plot(out1)
+
+//@version=4
+study(title = "Advance Decline Ratio", shorttitle="ADR")
+ratio(t1, t2, source) =>
+    s1 = security(t1, timeframe.period, source)
+    s2 = security(t2, timeframe.period, source)
+    s1 / s2
+plot(ratio("USI:ADVN.NY", "USI:DECL.NY", close))
+
+
+
+//=== Barmerge gaps and lookahead
+
+//@version=4
+study('My Script', overlay=true)
+a = security(syminfo.tickerid, '60', low, lookahead=barmerge.lookahead_off)
+plot(a, color=color.red)
+b = security(syminfo.tickerid, '60', low, lookahead=barmerge.lookahead_on)
+plot(b, color=color.lime)
+
+
+
+//=== Understanding lookahead
+
+//@version=4
+//...
+indexHighTF = barstate.isrealtime ? 1 : 0
+indexCurrTF = barstate.isrealtime ? 0 : 1
+a0 = security(syminfo.tickerid, 'D', close[indexHighTF], lookahead=barmerge.lookahead_off)
+a = a0[indexCurrTF]
+
+
+
+//=== Requesting data of a lower timeframe
+
+// Add this script on a "5" minute chart
+//@version=4
+study("Lookahead On/Off", overlay=true, precision=5)
+l_on = security(syminfo.tickerid, "1", close, lookahead=barmerge.lookahead_on)
+l_off = security(syminfo.tickerid, "1", close, lookahead=barmerge.lookahead_off)
+plot(l_on, color=color.red)
+plot(l_off, color=color.blue)
