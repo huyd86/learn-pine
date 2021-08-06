@@ -1,0 +1,5 @@
+//=== Calculation of drawings on bar updates
+
+//@version=4
+study("My Script", overlay=true)
+label.new(bar_index, high)

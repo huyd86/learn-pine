@@ -1,0 +1,23 @@
+//=== Creating drawings
+
+//@version=4
+study("My Script", overlay=true)
+label.new(bar_index, high)
+
+//@version=4
+study("My Script", overlay=true)
+label.new(bar_index, high, style=label.style_none,
+          text="x=" + tostring(bar_index) + "\ny=" + tostring(high))
+
+//@version=4
+study("My Script", overlay=true)
+line.new(x1=bar_index[1], y1=low[1], x2=bar_index, y2=high)
+
+//@version=4
+study("My Script", overlay=true)
+box.new(left=bar_index[1], top=low[1], right=bar_index, bottom=high)
+
+
+
+
+

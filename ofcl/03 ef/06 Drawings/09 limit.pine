@@ -1,0 +1,33 @@
+//=== Limit
+
+//=== Total number of drawings
+
+//@version=4
+study("My Script", overlay=true)
+label.new(bar_index, high)
+
+//@version=4
+study("My Script", overlay=true, max_labels_count=100)
+label.new(bar_index, high)
+
+//=== Bars count in future with xloc.bar_index
+//Objects positioned using xloc.bar_index cannot be drawn further than 500 bars into the future.
+
+//=== Additional securities
+//Pine code sometimes uses additional symbols and/or timeframes with the security function. Drawing functions can only be used in the main symbol’s context.
+
+//=== max_bars_back of time
+
+//@version=4
+study("My Script", overlay=true)
+
+if barstate.isrealtime
+    label.new(bar_index[10], na, text="Label", yloc=yloc.abovebar)
+
+//@version=4
+study("My Script", overlay=true)
+
+max_bars_back(time, 10)
+
+if barstate.isrealtime
+    label.new(bar_index[10], na, text="Label", yloc=yloc.abovebar)
