@@ -1,0 +1,45 @@
+//=== Session and time information
+
+
+//=== The “time” function and variable
+
+//@version=4
+study("Bar date/time")
+plot(time)
+
+//@version=4
+study("Session bars")
+t = time(timeframe.period, "0930-1600")
+plot(na(t) ? 0 : 1)
+
+//@version=4
+study("new 30 min bar")
+is_newbar(res) =>
+    t = time(res)
+    not na(t) and (na(t[1]) or t > t[1])
+plot(is_newbar("30") ? 1 : 0)
+
+//@version=4
+study("Opening high/low", overlay=true)
+
+highTimeFrame = input("D", type=input.resolution)
+sessSpec = input("0930-1600", type=input.session)
+
+is_newbar(res, sess) =>
+    t = time(res, sess)
+    na(t[1]) and not na(t) or t[1] < t
+
+newbar = is_newbar("1440", sessSpec)
+
+var float s1 = na
+var float s2 = na
+if newbar
+    s1 := low
+    s2 := high
+
+plot(s1, style=plot.style_circles, linewidth=3, color=color.red)
+plot(s2, style=plot.style_circles, linewidth=3, color=color.lime)
+
+
+
+//=== Built-in variables for working with time

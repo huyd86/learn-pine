@@ -1,0 +1,24 @@
+//=== Extended and regular sessions
+
+//@version=4
+study("Example 1: Regular Session Data")
+cc = security("BATS:AAPL", timeframe.period, close, true)
+plot(cc, style=plot.style_linebr)
+
+//@version=4
+study("Example 2: Extended Session Data")
+t = tickerid("BATS", "AAPL", session.extended)
+cc = security(t, timeframe.period, close, true)
+plot(cc, style=plot.style_linebr)
+
+//@version=4
+study("Example 3: Regular Session Data (using tickerid)")
+t = tickerid("BATS", "AAPL", session.regular)
+cc = security("BATS:AAPL", timeframe.period, close, true)
+plot(cc, style=plot.style_linebr)
+
+//@version=4
+study("Example 4: Same as Main Symbol Session Type Data")
+t = tickerid("BATS", "AAPL", syminfo.session)
+cc = security(t, timeframe.period, close, true)
+plot(cc, style=plot.style_linebr)

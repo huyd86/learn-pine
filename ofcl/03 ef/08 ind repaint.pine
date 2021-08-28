@@ -1,0 +1,8 @@
+//=== Indicator repainting
+
+// Add this study on 1 minute chart
+//@version=4
+study("My Script")
+c = security(syminfo.tickerid, "5", close)
+plot(close)
+plot(c, color=color.red)

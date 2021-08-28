@@ -1,0 +1,7 @@
+//=== linebreak function
+
+//@version=4
+study("Example 8", overlay=true)
+lb_t = linebreak(syminfo.tickerid, 3)
+lb_close = security(lb_t, timeframe.period, close)
+plot(lb_close)
