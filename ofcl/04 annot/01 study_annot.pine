@@ -1,0 +1,3 @@
+//=== study annotation
+
+study(title, shorttitle, overlay, format, precision)
