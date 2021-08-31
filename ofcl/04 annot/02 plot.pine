@@ -1,0 +1,15 @@
+//=== plot annotation
+
+plot(close)
+
+plot(125.2)
+
+plot(close, color=color.red)
+
+c = close >= open ? color.lime : color.red
+plot(close, color = c)
+
+//@version=4
+study("My Script 12", overlay=true)
+plot(close, color=color.red, offset=-5)
+plot(close, color=color.lime, offset=5)
