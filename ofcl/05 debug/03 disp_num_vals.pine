@@ -1,0 +1,21 @@
+//=== Displaying numeric values
+
+//====== When the script’s scale is unimportant
+
+//@version=4
+study("Plot `bar_index`")
+plot(bar_index, "Bar Index")
+
+//====== When the script’s scale must be preserved
+
+//@version=4
+study("Plot RSI and `bar_index`")
+r = rsi(close, 20)
+plot(r, "RSI", color.black)
+plot(bar_index, "Bar Index")
+
+//@version=4
+study("Plot RSI and `bar_index`")
+r = rsi(close, 20)
+plot(r, "RSI", color.black)
+plotchar(bar_index, "Bar index", "", location.top)
