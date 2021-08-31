@@ -1,0 +1,41 @@
+//=== Plotting shapes, chars and arrows
+
+//====== plotshape
+
+study('plotshape example 1', overlay=true)
+data = close >= open
+plotshape(data, style=shape.xcross)
+
+//@version=4
+study('plotshape example 2', overlay=true)
+data = close >= open
+plotshape(data, style=shape.triangleup,
+                 location=location.abovebar, color=color.green)
+plotshape(not data, style=shape.triangledown,
+                 location=location.belowbar, color=color.red)
+
+//@version=4
+study('plotshape example 3', overlay=true)
+data = close >= open
+plotshape(true, style=shape.flag, color=data ? color.green : color.red)
+
+//====== plotchar
+
+study('plotchar example', overlay=true)
+data = close >= open
+plotchar(data, char='a')
+
+study('plotchar example', overlay=true)
+data = close >= open
+plotchar(data, char='❄')
+
+//====== plotarrow
+
+study("plotarrow example", overlay=true)
+codiff = close - open
+plotarrow(codiff, colorup=teal, colordown=orange, transp=40)
+
+study("Chaikin Oscillator Arrows", overlay=true)
+short = input(3,minval=1), long = input(10,minval=1)
+osc = ema(accdist, short) - ema(accdist, long)
+plotarrow(osc)
