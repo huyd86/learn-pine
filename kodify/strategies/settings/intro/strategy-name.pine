@@ -1,0 +1,36 @@
+// Source: https://kodify.net/tradingview/strategy-settings/strategy-name/
+// Setting the name of a TradingView strategy programmatically
+
+//=== Setting the name of a TradingView strategy with code
+
+//=== Example: naming a moving average crossover strategy programmatically
+
+//@version=2
+strategy(title="Moving average crossover", overlay=true)
+
+// Inputs
+fastLen = input(title="Fast MA", type=integer, defval=12)
+slowLen = input(title="Slow MA", type=integer, defval=24)
+
+// Compute moving averages
+fastMA = sma(close, fastLen)
+slowMA = sma(sma(close, slowLen), slowLen)
+
+// Plot values
+plot(series=fastMA, color=#FF6347, linewidth=2)
+plot(series=slowMA, color=#7B68EE, linewidth=2)
+
+// Submit orders
+if (crossover(fastMA, slowMA))
+    strategy.entry(id="Enter Long", long=true)
+
+if (crossunder(fastMA, slowMA))
+    strategy.entry(id="Enter Short", long=false)
+
+//=== Naming a TradingView trading strategy programmatically
+
+//=== Giving a strategy an abbreviated name in TradingView
+
+//=== The filename of a TradingView strategy: different than its screen name
+
+//=== # Summary
