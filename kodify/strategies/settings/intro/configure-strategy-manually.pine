@@ -1,0 +1,30 @@
+// Source: https://kodify.net/tradingview/strategy-settings/configure-strategy-manually/
+// Configuring a TradingView strategy by hand and with code: an overview
+
+//=== Setting a TradingView's strategy settings: by hand or with code
+
+//=== Opening the strategy settings window in TradingView
+
+//=== Configuring where to display and plot a TradingView strategy
+
+//=== Specifying the number of decimals plotted by the strategy
+
+//=== Configuring a TradingView strategy's price scale
+
+//=== Setting a TradingView strategy's maximum number of entries
+
+//=== An additional intra-bar strategy calculation whenever an order fills
+
+//=== Calculating a TradingView strategy with every price update (or not)
+
+//=== Specifying how strict TradingView fills limit orders during a backtest
+
+//=== Setting a strategy's default order size in TradingView
+
+//=== Setting the strategy's initial backtest capital with code or by hand
+
+//=== Configuring a strategy's currency with code or by hand
+
+//=== Strategy settings that can only be set programmatically
+
+//=== Summary
