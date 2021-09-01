@@ -1,0 +1,84 @@
+// Source: https://kodify.net/tradingview/orders/strategy-entry/
+// Send entry orders with a TradingView strategy: the strategy.entry() function explained
+
+//=== Open trades with TradingView's strategy.entry() function
+
+//====== Quick example: open trade with strategy.entry()
+
+if (crossover(close, ema(close, 20)))
+    strategy.entry(id="EL", long=true)
+
+//=== Overview: arguments that configure strategy.entry()
+
+//=== Examples: send entry orders with strategy.entry()
+
+//====== Send market orders
+
+if (condition)
+    strategy.entry(id="Enter Long", long=true)
+if (condition)
+    strategy.entry(id="Enter Short", long=false)
+
+//====== Send limit orders
+
+if (condition)
+    strategy.entry(id="EL Limit", long=true, limit=limitPrice)
+if (condition)
+    strategy.entry(id="ES Limit", long=false, limit=limitPrice)
+
+//====== Send stop entry orders
+
+if (condition)
+    strategy.entry(id="EL Stop", long=true, stop=somePrice)
+if (condition)
+    strategy.entry(id="ES Stop", long=false, stop=somePrice)
+
+//====== Send stop-limit entry orders
+
+if (condition)
+    strategy.entry(id="EL Stop-Limit", long=true, stop=stopPrice,
+         limit=limitPrice)
+if (condition)
+    strategy.entry(id="ES Stop-Limit", long=false, stop=stopPrice,
+         limit=limitPrice)
+
+//=== Features of TradingView's strategy.entry() function
+
+//====== Two ways to execute strategy.entry(): when and if
+
+// Open a long trade with a market order
+strategy.entry(id="EL", long=true, when=higherCloses)
+
+// Open a long trade with a market order
+if (higherCloses)
+    strategy.entry(id="EL", long=true)
+
+//====== Scale into a position with strategy.entry()
+
+//====== Features of the order identifier that strategy.entry() uses
+
+//====== Reverse an open market position with strategy.entry()
+
+//====== strategy.entry() respects the strategy's pyramiding settings
+
+//====== All risk management functions influence strategy.entry()
+
+//====== strategy.long and strategy.short open long and short trades
+
+// Go long with a higher close
+if (close > close[1])
+    strategy.entry(id="EL", long=strategy.long)
+
+// Go short with lower closes
+if (close < close[1])
+    strategy.entry(id="ES", long=strategy.short)
+
+//====== strategy.entry() only trades the chart's instrument
+
+//====== The open position affects how strategy.entry() behaves
+
+//====== Like most functions, strategy.entry() is a void function
+
+//=== Does strategy.entry() not work? Consider this
+
+//=== Summary
