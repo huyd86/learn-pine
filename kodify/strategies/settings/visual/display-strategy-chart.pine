@@ -1,0 +1,39 @@
+// Source: https://kodify.net/tradingview/strategy-settings/display-strategy-chart/
+// Plotting a TradingView strategy on the instrument's price bars – here's how
+
+//=== Programmatically placing a TradingView strategy on the price chart
+
+//=== Plotting a TradingView stochastic strategy on the price chart
+
+//@version=2
+strategy(title="Stochastics strategy", overlay=true, scale=scale.left)
+
+// Inputs
+length  = input(title="Length", type=integer, defval=14)
+dLength = input(title="D Length", type=integer, defval=3)
+obLevel = input(title="Overbought", type=integer, defval=80)
+osLevel = input(title="Oversold", type=integer, defval=20)
+
+// Compute values
+stochK = stoch(close, high, low, length)
+stochD = sma(stochK, dLength)
+
+// Plot values
+plot(series=stochK, color=#1E90FF, title="K")
+plot(series=stochD, color=orange, title="D")
+
+hline(price=obLevel, color=#C0C0C0)
+hline(price=osLevel, color=#C0C0C0)
+
+// Submit orders
+if (crossunder(stochK, osLevel))
+    strategy.entry(id="Enter Long", long=true)
+
+if (crossover(stochK, obLevel))
+    strategy.entry(id="Enter Short", long=false)
+
+//=== Displaying a TradingView's strategy on the chart's instrument
+
+//=== Displaying a TradingView strategy in a separate chart panel
+
+//=== Summary
