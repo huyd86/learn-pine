@@ -1,0 +1,37 @@
+// Source: https://kodify.net/tradingview/strategy-settings/strategy-function/
+// How to configure a trading strategy in TradingView with code?
+
+//=== Setting strategy properties programmatically in TradingView
+
+//=== Working with the strategy() function in TradingView Pine
+
+//=== Example: trading the MACD and configuring the strategy programmatically
+
+strategy(title="MACD example strategy", overlay=false, default_qty_value=3,
+    initial_capital=10000, currency=currency.EUR)
+
+// Create inputs
+fastLen = input(title="Fast Length", type=integer, defval=12)
+slowLen = input(title="Slow Length", type=integer, defval=26)
+sigLen  = input(title="Signal Length", type=integer, defval=9)
+
+// Get MACD values
+[macdLine, signalLine, _] = macd(close, fastLen, slowLen, sigLen)
+
+// Plot MACD values and line
+plot(series=macdLine, color=#6495ED, linewidth=2)
+plot(series=signalLine, color=orange, linewidth=2)
+
+hline(price=0)
+
+// Determine long and short conditions
+longCondition  = crossover(macdLine, signalLine)
+shortCondition = crossunder(macdLine, signalLine)
+
+// Submit orders
+strategy.entry(id="Long Entry", long=true, when=longCondition)
+strategy.entry(id="Short Entry", long=false, when=shortCondition)
+
+//=== Example: a MACD trading strategy in TradingView
+
+//=== Summary
