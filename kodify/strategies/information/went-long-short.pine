@@ -1,0 +1,52 @@
+// Source: https://kodify.net/tradingview/strategy-info/went-long-short/
+// What code can see if a TradingView strategy went long, short, or flat?
+
+//=== Monitor a strategy position through its position size
+
+//=== See if a TradingView strategy went long
+
+// Check if the strategy opened a long position
+longNow = (strategy.position_size[1] <= 0) and (strategy.position_size > 0)
+
+// Look if the strategy went long from a short position
+longFromShort = (strategy.position_size[1] < 0) and
+     (strategy.position_size > 0)
+
+// See if the strategy went long from being flat
+// at the end of the previous bar
+longFromFlat = (strategy.position_size[1] == 0) and
+     (strategy.position_size > 0)
+
+//=== See if a TradingView strategy went short
+
+// See if strategy is short now, from long or flat earlier
+shortNow = (strategy.position_size[1] >= 0) and (strategy.position_size < 0)
+
+// Check if strategy reversed long position into short
+shortFromLong = (strategy.position_size[1] > 0) and
+     (strategy.position_size < 0)
+
+// See if strategy went short from no market position earlier
+shortFromFlat = (strategy.position_size[1] == 0) and
+     (strategy.position_size < 0)
+
+//=== See if the TradingView strategy went flat
+
+// See if strategy is flat now (from a market position earlier)
+flatNow = (strategy.position_size[1] != 0) and (strategy.position_size == 0)
+
+// Check if strategy went flat from previous long position
+flatFromLong = (strategy.position_size[1] > 0) and
+     (strategy.position_size == 0)
+
+// See if strategy went from flat to short position
+flatFromShort = (strategy.position_size[1] < 0) and
+     (strategy.position_size == 0)
+
+//=== Bonus: see if a strategy went long or short
+
+// See if the strategy opened a long or short position
+longShortNow = (strategy.position_size[1] == 0) and
+     (strategy.position_size != 0)
+
+//=== Summary
