@@ -1,0 +1,95 @@
+// Source: https://kodify.net/tradingview/strategy-info/wins-losses-evens/
+// Get winning, losing, and even trades in TradingView: the strategy.wintrades, strategy.losstrades, and strategy.eventrades variables
+
+//=== Get win, lose, and even strategy trades in TradingView Pine
+
+// strategy.wintrades returns the total number of winning trades.
+// strategy.losstrades gives us the total number of losing trades.
+// And strategy.eventrades tells how many break-even trades happened.
+
+//=== Get the total win trade count: strategy.wintrades
+
+// See if the strategy's win target is already achieved
+winTarget = (strategy.wintrades > 100)
+
+// See if there are more wins than losses
+winsOverLosses = (strategy.wintrades > strategy.losstrades)
+
+// Get number of wins on previous bar
+lastWinTrades = strategy.wintrades[1]
+
+// Get wins from 10 bars ago
+previousWins = strategy.wintrades[10]
+
+// Get winning trades last 30 bars
+recentWinCount = strategy.wintrades - strategy.wintrades[30]
+
+// Check if strategy's wins increased recently
+winsIncreased = (strategy.wintrades - strategy.wintrades[10]) > 3
+
+// Calculates percentage growth win trades last 100 bars
+winGrowth = ((strategy.wintrades - strategy.wintrades[100]) /
+     strategy.wintrades[100]) * 100
+
+// Calculate moving average of total win count
+maWins = sma(strategy.wintrades, 30)
+
+// Display wins on the chart as a green line
+plot(series=strategy.wintrades, color=color.green)
+
+//=== Get the number of strategy losses: strategy.losstrades
+
+// Check if losses remain under maximum
+lossesOkay = (strategy.losstrades < 45)
+
+// Check if total lose trades are less than win trades
+lessLossThanWin = (strategy.losstrades < strategy.wintrades)
+
+// Fetch loss count as they were at the
+// end of the last price bar
+lastLossCount = strategy.losstrades[1]
+
+// Get loss count from 20 bars back
+prevLossCount = strategy.losstrades[20]
+
+// Get number of losses in last 35 bars
+recentLosses = strategy.losstrades - strategy.losstrades[35]
+
+// See if there are more than 15 losses in the last 50 bars
+tooManyLosses = (strategy.losstrades - strategy.losstrades[50]) > 15
+
+// Calculate percentage growth of losses in last 100 bars
+lossGrowth = ((strategy.losstrades - strategy.losstrades[100]) /
+     strategy.losstrades[100]) * 100
+
+// For whichever reason, calculate RSI of losing trades
+rsiLoss = rsi(strategy.losstrades, 22)
+
+// Display total losses count on the chart
+plot(series=strategy.losstrades, color=color.red)
+
+//=== Get the number of break-even trades: strategy.eventrades
+
+// Look if even trades are below 20
+fewEvenTrades = (strategy.eventrades < 20)
+
+// Calculate total losses by including even trades
+totalLosses = strategy.eventrades + strategy.losstrades
+
+// Get total number of even trades as they were
+// on the previous price bar
+previousEvens = strategy.eventrades[1]
+
+// Get even trades from 15 bars back
+lastEvenTrades = strategy.eventrades[15]
+
+// See if there's at least one break-even trade during the last 30 bars
+recentEvenTrades = (strategy.eventrades - strategy.eventrades[30]) > 0
+
+// Calculate 20-bar momentum of even trades, because we can
+evenMom = mom(strategy.eventrades, 20)
+
+// Display total break-even trades count as a teal line
+plot(series=strategy.eventrades, color=color.teal)
+
+//=== Summary
