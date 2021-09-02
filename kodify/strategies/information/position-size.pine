@@ -1,0 +1,51 @@
+// Source: https://kodify.net/tradingview/strategy-info/position-size/
+// How to get the position size of a TradingView strategy? (strategy.position_size explained)
+
+//=== Get a strategy's position size (and direction too)
+
+//=== Use the strategy's current position size
+
+//====== Get the strategy's market position size
+
+// Fetch the strategy's current position size
+posSize = abs(strategy.position_size)
+
+//====== See if the strategy is long or short
+
+// Look if the strategy is long or short
+isLong  = (strategy.position_size > 0)
+isShort = (strategy.position_size < 0)
+
+//====== Look if the strategy is flat at this time
+
+// Check if strategy has no open position
+isFlat = (strategy.position_size == 0)
+
+//====== Compare current position against maximum size
+
+// Make an input to configure the maximum position size
+maxPos = input(title="Maximum Position Size",
+     type=input.integer, defval=100)
+
+// Look how much quantity we can still trade
+posToTrade = maxPos - abs(strategy.position_size)
+
+// Generate new entry if we haven't hit the max yet
+if (posToTrade > 0) and (close > close[1])
+    strategy.entry(id="EL", long=true, qty=posToTrade)
+
+//=== Work with the strategy's previous position size
+
+//====== Check if the strategy opened a new long or short position
+
+// Look if strategy opened long or short position
+longShortNow = (strategy.position_size[1] == 0) and (strategy.position_size != 0)
+
+//====== See how much the position size increased
+
+// Figure out how much position size changed
+posChange = strategy.position_size - strategy.position_size[1]
+
+//=== Features of TradingView's strategy.position_size variable
+
+//=== Summary
