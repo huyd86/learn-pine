@@ -1,0 +1,78 @@
+// Source: https://kodify.net/tradingview/strategy-info/closed-open-trades/
+// Get a strategy's open and closed trade count: TradingView's strategy.closedtrades and strategy.opentrades variables
+
+//=== Use closed and open trade count in TradingView
+
+//=== Get a strategy's number of closed trades: strategy.closedtrades
+
+//====== Fetch the strategy's current number of closed trades
+
+// See if the strategy already did 75 trades
+tradesDone = (strategy.closedtrades >= 75)
+
+// Default position size
+positionSize = 20
+
+// Increase position size on the 45th trade
+if (strategy.closedtrades == 45)
+    positionSize := positionSize + 5
+
+// Calculate a strategy's total trade count
+allTrades = strategy.closedtrades + strategy.opentrades
+
+// See if 50% or more of closed trades were profitable
+oftenProfitable = (strategy.wintrades >= (strategy.closedtrades * 0.5))
+
+//====== Work with the strategy's previous closed trades count
+
+// Get total closed trades from previous bar
+prevTradeCount = strategy.closedtrades[1]
+
+// Get closed trades from fifteen bars back
+previousTrades = strategy.closedtrades[15]
+
+// See if the strategy just closed a trade
+justClosedTrade = (strategy.closedtrades > strategy.closedtrades[1])
+
+// See if the strategy recently traded actively (> 7 closed trades)
+tradesActively = ((strategy.closedtrades - strategy.closedtrades[25]) > 7)
+
+// See if the strategy recently traded actively (> 7 closed trades)
+tradesActively = ((strategy.closedtrades - strategy.closedtrades[25]) > 7)
+
+// See percentage growth in strategy's closed trades
+tradeGrowth = ((strategy.closedtrades - strategy.closedtrades[50]) /
+     strategy.closedtrades[50]) * 100
+
+// Calculate strategy's total trade count
+totalTrades = strategy.closedtrades + strategy.opentrades
+
+// See if strategy did more than 30 trades in last 100 bars
+tooActive = (totalTrades - totalTrades[100]) > 30
+
+//====== Features of TradingView's strategy.closedtrades variable
+
+//=== Get a strategy's number of open trades: strategy.opentrades
+
+//====== Use the current number of open strategy trades
+
+// Check if strategy has 5+ open trades
+severalOpenTrades = (strategy.opentrades > 5)
+
+// Submit another entry order with 3 open entries
+if (strategy.opentrades == 3)
+    strategy.entry(id="EL+", long=true)
+
+//====== Compare current open trades with previous bars
+
+// See if open trades increased compared to last bar
+moreOpens = (strategy.opentrades > strategy.opentrades[1])
+
+// See if the strategy has an open position
+// that's open for 10+ bars
+openFor10 = (strategy.opentrades > 0) and
+     (strategy.opentrades > strategy.opentrades[10])
+
+//=== Features of TradingView's strategy.opentrades variable
+
+//=== Summary
