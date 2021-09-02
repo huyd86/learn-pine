@@ -1,0 +1,98 @@
+// Source: https://kodify.net/tradingview/orders/highs-lows-stop/
+// How to code TradingView stops based on the highest high and lowest low?
+
+//=== Submit TradingView stops with recent price extremes
+
+//=== Overview: steps to code highest high & lowest low stops
+
+// Optional: set the highest high and lowest low lookback period with an input option.
+// Calculate the recent highest high and lowest low.
+// Optional: plot the highest high stop and lowest low stop on the chart for confirmation.
+// Generate stop-loss orders for the highest high when short and for the lowest low when long.
+
+//====== Step 1. Set highest high and lowest low with inputs (optional)
+
+// Make inputs for length of highest high and lowest low
+hiLen = input(title="Highest High Lookback", type=integer,
+     defval=20, minval=2)
+
+loLen = input(title="Lowest Low Lookback", type=integer,
+     defval=20, minval=2)
+
+//====== Step 2. Calculate the recent highest high and lowest low
+
+// Calculate recent extreme high and low
+hiHighs = highest(high, hiLen)[1]
+loLows  = lowest(low, loLen)[1]
+
+//====== Step 3. Plot extreme high and low on the chart (optional)
+
+// Plot stop values for visual confirmation
+plot(series=(strategy.position_size > 0) ? loLows : na,
+     style=circles, color=green, linewidth=3,
+     title="Lowest Low Stop")
+
+plot(series=(strategy.position_size < 0) ? hiHighs : na,
+     style=circles, color=red, linewidth=3,
+     title="Highest High Stop")
+
+//====== Step 4. Submit the highest high and lowest low stop orders
+
+// Submit stops based on highest high and lowest low
+if (strategy.position_size > 0)
+    strategy.exit(id="XL HH STP", stop=loLows)
+
+if (strategy.position_size < 0)
+    strategy.exit(id="XS LL STP", stop=hiHighs)
+
+//=== Example strategy: highest high and lowest low stops in TradingView
+
+//@version=3
+strategy(title="Highest high/lowest low stop", overlay=true)
+
+// STEP 1:
+// Make inputs for length of highest high and lowest low
+hiLen = input(title="Highest High Lookback", type=integer,
+     defval=20, minval=2)
+
+loLen = input(title="Lowest Low Lookback", type=integer,
+     defval=20, minval=2)
+
+// STEP 2:
+// Calculate recent extreme high and low
+hiHighs = highest(high, hiLen)[1]
+loLows  = lowest(low, loLen)[1]
+
+// Plot stop values for visual confirmation
+plot(series=(strategy.position_size > 0) ? loLows : na,
+     style=circles, color=green, linewidth=3,
+     title="Lowest Low Stop")
+
+plot(series=(strategy.position_size < 0) ? hiHighs : na,
+     style=circles, color=red, linewidth=3,
+     title="Highest High Stop")
+
+// Trading conditions for this example strategy
+higherCloses = (close > close[1]) and
+     (close[1] > close[2]) and (close[2] > close[3])
+lowerCloses = (close < close[1]) and
+     (close[1] < close[2]) and (close[2] < close[3])
+isFlat = (strategy.position_size == 0)
+
+// Submit entry orders
+if (isFlat and higherCloses)
+    strategy.entry(id="EL", long=true)
+
+if (isFlat and lowerCloses)
+    strategy.entry(id="ES", long=false)
+
+// STEP 3:
+// Submit stops based on highest high and lowest low
+if (strategy.position_size > 0)
+    strategy.exit(id="XL HH", stop=loLows)
+
+if (strategy.position_size < 0)
+    strategy.exit(id="XS LL", stop=hiHighs)
+
+
+
