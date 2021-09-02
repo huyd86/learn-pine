@@ -1,0 +1,37 @@
+//=== Check strategy direction with strategy.position_size
+
+//====== See if the strategy is long right now
+
+// Look if strategy is long
+isLong = (strategy.position_size > 0)
+
+//====== See if the strategy is short during the current script calculation
+
+// Inspect if strategy script is short
+isShort = (strategy.position_size < 0)
+
+//====== See if the strategy is flat at this moment
+
+// Verify if strategy is flat
+isFlat = (strategy.position_size == 0)
+
+//=== Check several strategy directions at the same time
+
+//====== See if the strategy is long or short
+
+// Check if strategy has a long or short position
+isLongShort = (strategy.position_size != 0)
+
+//====== See if the strategy is flat or long
+
+// See if strategy is either flat or long
+isLongFlat = (strategy.position_size >= 0)
+
+//====== See if the the strategy is flat or short
+
+// Look if strategy is flat or short
+isShortFlat = (strategy.position_size <= 0)
+
+//=== Ways to use strategy direction in TradingView strategies
+
+//=== Summary
