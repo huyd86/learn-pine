@@ -1,0 +1,93 @@
+// Source: https://kodify.net/tradingview/orders/moving-average-stop/
+// How to code a moving average strategy stop in TradingView?
+
+//=== Stop-loss orders based on moving averages
+
+//=== Overview: steps for moving average TradingView stops
+
+// Optional: configure the moving average with input options.
+// Calculate the moving average itself.
+// Submit a stop-loss order for that moving average price.
+// Optional: plot the moving average-based stop on the chart.
+
+//====== Step 1. Set moving average with inputs (optional)
+
+// Configure moving average with input options
+priceData = input(title="Price Data", type=source, defval=close)
+maLength  = input(title="Moving Average Length", type=integer,
+     defval=45, minval=2)
+
+//====== Step 2. Calculate the moving average
+
+// Calculate the moving average
+maValue = ema(priceData, maLength)
+
+//====== Step 3. Generate stops orders for the moving average value
+
+// Submit moving average-based stops
+if (strategy.position_size > 0)
+    strategy.exit(id="XL MA STP", stop=maValue)
+
+if (strategy.position_size < 0)
+    strategy.exit(id="XS MA STP", stop=maValue)
+
+//====== Step 4. Show moving average stop on the chart (optional)
+
+// Display stop prices for confirmation
+plot(series=(strategy.position_size > 0) ? maValue : na,
+     color=red, style=circles, linewidth=3,
+     title="Long Stop")
+
+plot(series=(strategy.position_size < 0) ? maValue : na,
+     color=red, style=cross, linewidth=3,
+     title="Short Stop")
+
+//=== Example strategy: trade with moving average stops in TradingView
+
+//@version=3
+strategy(title="Moving average stop", overlay=true)
+
+// STEP 1:
+// Configure moving average with input options
+priceData = input(title="Price Data", type=source, defval=close)
+maLength  = input(title="Moving Average Length", type=integer,
+     defval=45, minval=2)
+
+// STEP 2:
+// Calculate the moving average
+maValue = ema(priceData, maLength)
+
+// Show moving average on the chart
+plot(series=maValue, color=orange, title="Moving Average")
+
+// Display stop prices for confirmation
+plot(series=(strategy.position_size > 0) ? maValue : na,
+     color=red, style=circles, linewidth=3,
+     title="Long Stop")
+
+plot(series=(strategy.position_size < 0) ? maValue : na,
+     color=red, style=cross, linewidth=3,
+     title="Short Stop")
+
+// Trading conditions for this example strategy
+isFlat = (strategy.position_size == 0)
+
+enterLong = isFlat and (low > maValue) and
+     (close > close[1]) and (close[1] > close[2])
+enterShort = isFlat and (high < maValue) and
+     (close < close[1]) and (close[1] < close[2])
+
+// Submit entry orders
+if (enterLong)
+    strategy.entry(id="EL", long=true)
+
+if (enterShort)
+    strategy.entry(id="ES", long=false)
+
+// STEP 4:
+// Submit moving average-based stops
+if (strategy.position_size > 0)
+    strategy.exit(id="XL MA STP", stop=maValue)
+
+if (strategy.position_size < 0)
+    strategy.exit(id="XS MA STP", stop=maValue)
