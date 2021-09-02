@@ -1,0 +1,89 @@
+// Source: https://kodify.net/tradingview/orders/percentage-stop/
+// How to exit unprofitable trades with a percentage-based stop loss in TradingView?
+
+//=== Submit TradingView stops based on percentage price changes
+
+//=== Overview: steps to submit percentage-based stops
+
+// Optional: create an input that configures the stop-loss percentage.
+// Use a percentage to calculate the actual stop price.
+// Submit the stop-loss order for the computed price.
+
+//====== Step 1. Optional: set the maximum loss percentage with inputs
+
+// Set stop loss level with input options (optional)
+longLossPerc = input(title="Long Stop Loss (%)",
+     type=float, minval=0.0, step=0.1, defval=1) * 0.01
+
+shortLossPerc = input(title="Short Stop Loss (%)",
+     type=float, minval=0.0, step=0.1, defval=1) * 0.01
+
+//====== Step 2. Use the percentage to calculate the stop-loss price
+
+// Determine stop loss price
+longStopPrice  = strategy.position_avg_price * (1 - longLossPerc)
+shortStopPrice = strategy.position_avg_price * (1 + shortLossPerc)
+
+//====== Step 3. Submit the actual stop-loss orders
+
+// Submit exit orders based on calculated stop loss price
+if (strategy.position_size > 0)
+    strategy.exit(id="XL STP", stop=longStopPrice)
+
+if (strategy.position_size < 0)
+    strategy.exit(id="XS STP", stop=shortStopPrice)
+
+//=== Example strategy: trade with percentage stops
+
+//@version=3
+strategy(title="Stop loss (% of instrument price)",
+     overlay=true, pyramiding=3)
+
+// STEP 1:
+// Set stop loss level with input options (optional)
+longLossPerc = input(title="Long Stop Loss (%)",
+     type=float, minval=0.0, step=0.1, defval=1) * 0.01
+
+shortLossPerc = input(title="Short Stop Loss (%)",
+     type=float, minval=0.0, step=0.1, defval=1) * 0.01
+
+// Calculate moving averages
+fastSMA = sma(close, 20)
+slowSMA = sma(close, 60)
+
+// Calculate trading conditions
+enterLong  = crossover(fastSMA, slowSMA)
+enterShort = crossunder(fastSMA, slowSMA)
+
+// Plot moving averages
+plot(series=fastSMA, color=teal)
+plot(series=slowSMA, color=orange)
+
+// STEP 2:
+// Determine stop loss price
+longStopPrice  = strategy.position_avg_price * (1 - longLossPerc)
+shortStopPrice = strategy.position_avg_price * (1 + shortLossPerc)
+
+// Plot stop loss values for confirmation
+plot(series=(strategy.position_size > 0) ? longStopPrice : na,
+     color=red, style=cross,
+     linewidth=2, title="Long Stop Loss")
+plot(series=(strategy.position_size < 0) ? shortStopPrice : na,
+     color=red, style=cross,
+     linewidth=2, title="Short Stop Loss")
+
+// Submit entry orders
+if (enterLong)
+    strategy.entry(id="EL", long=true)
+
+if (enterShort)
+    strategy.entry(id="ES", long=false)
+
+// STEP 3:
+// Submit exit orders based on calculated stop loss price
+if (strategy.position_size > 0)
+    strategy.exit(id="XL STP", stop=longStopPrice)
+
+if (strategy.position_size < 0)
+    strategy.exit(id="XS STP", stop=shortStopPrice)
+   
