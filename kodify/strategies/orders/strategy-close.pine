@@ -1,0 +1,113 @@
+// Source: https://kodify.net/tradingview/orders/strategy-close/
+// Exit trades with a market order: TradingView's strategy.close() and strategy.close_all() functions
+
+//=== Exit strategy trades in TradingView with a market order
+
+//=== Close specific entries with a market order: strategy.close()
+
+//====== Examples: close a particular trade with strategy.close()
+
+// Exit condition: 10-bar EMA falls under 30-bar EMA
+exitLong = crossunder(ema(close, 10), ema(close, 30))
+
+// Exit 'EL' trade whenever exit condition happens
+strategy.close(id="EL", when=exitLong)
+
+// Close 'EL' entry when 10-bar EMA crosses under 30-bar EMA
+if (crossunder(ema(close, 10), ema(close, 30)))
+    strategy.close(id="EL")
+
+//====== Example strategy: exit longs and shorts with strategy.close()
+
+//@version=3
+strategy(title="strategy.close() example", overlay=true,
+     pyramiding=10)
+
+// Calculate moving averages
+fastSMA = sma(close, 20)
+slowSMA = sma(close, 75)
+
+// Show averages on the chart
+plot(series=fastSMA, color=teal)
+plot(series=slowSMA, color=orange, linewidth=2)
+
+// Determine entry conditions
+higherCloses = (close > close[1]) and
+     (close[1] > close[2]) and (close[2] > close[3])
+lowerCloses = (close < close[1]) and
+     (close[1] < close[2]) and (close[2] < close[3])
+
+// Submit entry orders
+if (higherCloses)
+    strategy.entry(id="EL", long=true)
+
+if (lowerCloses)
+    strategy.entry(id="ES", long=false)
+
+// Determine exit conditions
+exitLong  = crossunder(close, fastSMA)
+exitShort = crossover(close, fastSMA)
+
+// Exit trades
+if (exitLong)
+    strategy.close(id="EL")
+
+if (exitShort)
+    strategy.close(id="ES")
+
+//====== Features of TradingView's strategy.close() function
+
+// Close 'EL1' and 'EL2' orders when SMAs cross
+if (cross(sma(close, 10), sma(close, 30)))
+    strategy.close(id="EL1")
+    strategy.close(id="EL2")
+
+// Exit 'EL' trade
+strategy.close("EL", close < close[10])
+
+// Close 'ES' trade
+if (close > open and close > close[1])
+    strategy.close("ES")
+
+//=== Close entire position with a market order
+
+//====== Examples of strategy.close_all()
+
+// Close all open trades when hitting a 1,000 currency loss
+strategy.close_all(when=strategy.openprofit < -1000)
+
+// Close all open trades when hitting a 1,000 currency loss
+if (strategy.openprofit < -1000)
+    strategy.close_all()
+
+//====== Example strategy: exit positions with strategy.close_all()
+
+//@version=3
+strategy(title="strategy.close_all() example",
+     overlay=true, pyramiding=5)
+
+// Entry conditions
+highBreakout = (close > highest(high, 10)[1])
+lowBreakout  = (close < lowest(low, 10)[1])
+
+// Submit entry orders
+if (highBreakout)
+    strategy.entry(id="EL", long=true, qty=2)
+
+if (lowBreakout)
+    strategy.entry(id="ES", long=false, qty=2)
+
+// Determine exit condition
+emaValue   = ema(close, 35)
+exitTrades = crossover(close, emaValue) or crossunder(close, emaValue)
+
+// For confirmation, show EMA on the chart
+plot(series=emaValue, color=teal, linewidth=2)
+
+// Close any long or short trade when the EMA cross happens
+if (exitTrades)
+    strategy.close_all()
+
+//====== Features of TradingView's strategy.close_all() function
+
+//=== Summary
