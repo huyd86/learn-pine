@@ -1,0 +1,78 @@
+// Source: https://kodify.net/tradingview/risks/combine-risk-rules/
+// Explained: multiple risk management rules in the same TradingView strategy
+
+//=== Combine TradingView risk management functions
+
+//====== Overview: all TradingView risk management functions
+
+strategy.risk.allow_entry_in() makes the strategy only trade long or short.
+strategy.risk.max_cons_loss_days() stops the strategy after a number of losing days in a row.
+strategy.risk.max_drawdown() halts all trading when a maximum drawdown value is reached.
+strategy.risk.max_position_size() prevents that the strategy trades positions that are too big.
+strategy.risk.max_intraday_filled_orders() limits the number of intra-day trades.
+And strategy.risk.max_intraday_loss() stops trading for the day after a certain intra-day loss is reached.
+
+//=== Multiple risk management rules in the same strategy
+
+//====== Example: limit losing day streak and maximum drawdown
+
+//@version=3
+strategy(title="Limit strategy risk: losing streak and drawdown")
+
+// ...
+
+// Stop trading after 3 losing days in a row
+strategy.risk.max_cons_loss_days(count=3)
+
+// Or stop trading when drawdown reaches 10,000
+strategy.risk.max_drawdown(value=10000, type=strategy.cash)
+
+// ...
+
+//====== Example: limit position size and intra-day orders
+
+//@version=3
+strategy(title="Example: limit trade activity and size")
+
+// ...
+
+// Don't trade more than 10 contracts long or short
+strategy.risk.max_position_size(contracts=10)
+
+// But also don't trade more than 3 times a day
+strategy.risk.max_intraday_filled_orders(count=3)
+
+// ...
+
+//=== The same risk function more than once in the same script
+
+//====== Risk management functions we can use repeatedly
+
+These risk management functions provide an extra feature when we execute them twice:
+
+With the strategy.risk.max_drawdown() function we can define a strategy’s maximum drawdown in currency and as a percentage of equity.
+And the strategy.risk.max_intraday_loss() function can define a strategy’s allowed intra-day in currency and equity percentage when executed twice.
+
+But these risk management functions give no bonus when we use them repeatedly:
+
+The strategy.risk.allow_entry_in() function makes a strategy trade only long or short. But if we use the function twice, we allow the script to trade long and short – which is the same as the default behaviour.
+The strategy.risk.max_cons_loss_days() function stops trading after a losing day streak. When we use this function repeatedly, the smallest losing streak is what sets the strategy’s behaviour. The other function calls are unnecessary then.
+With the strategy.risk.max_position_size() function we limit the strategy’s position size. Since the smallest position size guides the strategy’s behaviour, other strategy.risk.max_position_size() function calls are redundant.
+And the strategy.risk.max_intraday_filled_orders() function limits the number of intra-day trades. The smallest trade amount sets the strategy’s behaviour. That makes other instances of the same function unneeded.
+
+//====== Example: set maximum drawdown in two ways
+
+//@version=3
+strategy(title="Max drawdown in currency and percent")
+
+// ...
+
+// Stop trading after losing 5,000 currency
+strategy.risk.max_drawdown(value=5000, type=strategy.cash)
+
+// Or stop after losing 15 of strategy equity, whichever happens first
+strategy.risk.max_drawdown(value=15, type=strategy.percent_of_equity)
+
+// ...
+
+//=== Summary
