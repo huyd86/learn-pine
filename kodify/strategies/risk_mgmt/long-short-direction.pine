@@ -1,0 +1,71 @@
+// Source: https://kodify.net/tradingview/risks/long-short-direction/
+// Have a TradingView strategy only trade long or short: the strategy.risk.allow_entry_in() function
+
+//=== Limit trading risks with only long or short trades
+
+strategy.risk.allow_entry_in(value)
+
+// Only submit enter long orders
+strategy.risk.allow_entry_in(strategy.direction.long)
+
+// Only enter short trades
+strategy.risk.allow_entry_in(strategy.direction.short)
+
+//=== Features of TradingView’s
+
+Only affects the current trading strategy
+Influences the strategy script at all times
+Cannot be used with a condition
+Turns entry orders into exit trades
+Can still trade both long or short
+
+//=== Example strategies that use strategy.risk.allow_entry_in()
+
+//====== Only trade long positions
+
+//@version=3
+strategy(title="Allow entry in example", overlay=true)
+
+// Calculate moving averages
+fastMA = sma(close, 20)
+slowMA = sma(close, 50)
+
+// Plot averages on the chart
+plot(series=fastMA, color=teal)
+plot(series=slowMA, color=orange, linewidth=2)
+
+// Only trade from the long side
+strategy.risk.allow_entry_in(strategy.direction.long)
+
+// Submit orders
+if (crossover(fastMA, slowMA))
+    strategy.entry(id="EL", long=true)
+
+if (crossunder(fastMA, slowMA))
+    strategy.entry(id="ES", long=false)
+
+//====== Only execute short trades
+
+//@version=3
+strategy(title="Allow entry in - short only", overlay=true)
+
+// Calculate highest high and lowest low
+hiHighs = highest(high, 20)[1]
+loLows  = lowest(low, 20)[1]
+
+// Show 20-bar highs and lows on the chart
+plot(series=hiHighs, style=circles, color=green, linewidth=2)
+plot(series=loLows, style=circles, color=red, linewidth=2)
+
+// Only trade from the short side
+strategy.risk.allow_entry_in(strategy.direction.short)
+
+// Submit orders
+if (crossover(close, hiHighs))
+    strategy.entry(id="EL", long=true)
+
+if (crossunder(close, loLows))
+    strategy.entry(id="ES", long=false)
+
+
+
