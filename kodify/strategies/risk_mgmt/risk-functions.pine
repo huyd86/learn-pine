@@ -1,3 +1,59 @@
 // Source: https://kodify.net/tradingview/risks/risk-functions/
 // Overview: TradingView's risk management functions for trading strategies
 
+//=== Handle trading risks with TradingView’s risk management
+
+Global risk functions:
+strategy.risk.allow_entry_in() makes the strategy only trade long or short.
+strategy.risk.max_cons_loss_days() limits the number of losing days in a row.
+strategy.risk.max_drawdown() puts a maximum on the strategy’s drawdown.
+strategy.risk.max_position_size() limit’s the strategy’s position size.
+
+Intra-day risk functions:
+strategy.risk.max_intraday_filled_orders() limits the number of intra-day trades.
+strategy.risk.max_intraday_loss() places a cap on the maximum intra-day loss.
+
+//=== Global risk management functions
+
+//====== Only trade long or short: strategy.risk.allow_entry_in()
+
+// Only enter short trades
+strategy.risk.allow_entry_in(value=strategy.direction.short)
+
+// Only submit enter long orders
+strategy.risk.allow_entry_in(value=strategy.direction.long)
+
+//====== Limit losing day streak: strategy.risk.max_cons_loss_days()
+
+// Stop trading after 5 days in a row with declining strategy equity
+strategy.risk.max_cons_loss_days(count=5)
+
+//====== Limit strategy drawdown: strategy.risk.max_drawdown()
+
+// Don't lose more than 5k in the currency of the chart's instrument
+strategy.risk.max_drawdown(value=5000, type=strategy.cash)
+
+// Stop trading after losing 10% of equity
+strategy.risk.max_drawdown(value=10, type=strategy.percent_of_equity)
+
+//====== Limit maximum position size: strategy.risk.max_position_size()
+
+// Don't trade positions bigger than 15 contracts, shares, units, or lots
+strategy.risk.max_position_size(contracts=15)
+
+//=== Intra-day TradingView risk functions
+
+//====== Limit intra-day trades
+
+// Don't fill more than twenty orders in an intra-day session
+strategy.risk.max_intraday_filled_orders(count=20)
+
+//====== Limit intra-day loss: strategy.risk.max_intraday_loss()
+
+// Don't lose more than 450 currency during an intra-day trading session
+strategy.risk.max_intraday_loss(value=450, type=strategy.cash)
+
+// Risk at most 3% of strategy equity during a trading session
+strategy.risk.max_intraday_loss(value=0.03, type=strategy.percent_of_equity)
+
+//=== Summary
