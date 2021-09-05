@@ -1,0 +1,104 @@
+// Source: https://kodify.net/tradingview/risks/limit-day-trades/
+// Limit a strategy’s number of intra-day trades: TradingView’s strategy.risk.max_intraday_filled_orders() function
+
+//=== Don’t have a strategy trade too often during a session
+
+strategy.risk.max_intraday_filled_orders(count)
+
+//=== Features of the strategy.risk.max_intraday_filled_orders() function
+
+‘Intra-day’ is the instrument’s trading session
+
+But ‘intra-day’ means ‘1 bar’ on daily and higher time frames
+
+This risk rule limits both entry and exit orders
+
+This risk function is active all the time
+
+We can’t set this risk function conditionally
+
+But we can set this risk rule with an input option
+
+This risk function only applies to the current strategy
+
+//=== Examples of the strategy.risk.max_intraday_filled_orders() function
+
+//====== Example: don’t generate more than 5 intra-day orders
+
+//@version=3
+strategy(title="Example: max filled intra-day orders",
+     overlay=false)
+
+// Calculate values
+momValue = mom(close, 12)
+momEma   = ema(momValue, 22)
+
+// Plot values on the chart
+plot(series=momValue, color=teal)
+plot(series=momEma, color=orange)
+hline(price=0)
+
+// Limit trading to 5 trades per day
+strategy.risk.max_intraday_filled_orders(count=5)
+
+// Determine trading conditions
+enterLong = crossover(momValue, momEma) or
+     crossover(momValue, 0)
+enterShort = crossunder(momValue, momEma) or
+     crossunder(momValue, 0)
+
+// Submit orders
+if (enterLong)
+    strategy.entry(id="EL", long=true)
+
+if (enterShort)
+    strategy.entry(id="ES", long=false)
+
+//====== Example: limit and track TradingView’s intra-day trades
+
+//@version=3
+strategy(title="Example: max orders per day",
+     overlay=false, precision=0)
+
+// Calculate moving averages
+fastMA = sma(close, 6)
+slowMA = sma(close, 12)
+
+// Don't trade more often than 10 times a day
+strategy.risk.max_intraday_filled_orders(count=10)
+
+// Submit orders
+if (crossover(fastMA, slowMA))
+    strategy.entry(id="EL", long=true, qty=10)
+
+if (crossunder(fastMA, slowMA))
+    strategy.entry(id="ES", long=false, qty=10)
+
+// Calculate how many orders are filled (this code
+// assumes at most one order per bar)
+filledOrders = 0
+filledOrders := (dayofweek != dayofweek[1]) ? 0 :
+     (strategy.position_size != strategy.position_size[1]) ?
+         filledOrders[1] + 1 :
+     filledOrders[1]
+
+// Plot the filled orders on the chart to track
+plot(series=filledOrders, style=columns)
+
+//=== Strengths and weaknesses of strategy.risk.max_intraday_filled_orders()
+
+The strong features that this risk rule has are:
+
+This risk function makes it easy to quickly limit the number of intra-day trades. That saves us from writing and testing a custom code solution.
+With this risk function our strategy cannot overtrade, which is something that has a strong negative impact on the strategy’s net profit.
+
+There are also a few limitations with strategy.risk.max_intraday_filled_orders():
+
+We can’t enable or disable this function conditionally. So strategy.risk.max_intraday_filled_orders() is active during the entire backtest period and all real-time signals, regardless of how the strategy performs or what the market conditions are.
+We can’t set the maximum number of trades based on logic. That makes it impossible to reduce the maximum trades when the market is volatile, and allow more trades when conditions are favourable to our strategy.
+The function counts both entry and exit orders. But while an entry order increases strategy risk, an exit order lessens risks. So it would be helpful if we could only limit entry trades.
+The risk rule doesn’t consider if our intra-day trades were profitable. While it’s good to limit intra-day losing trades, when our strategy has a bunch of profitable intra-day trades we definitely want to keep trading!
+
+//=== More ways to limit TradingView strategy risks
+
+//=== Summary
