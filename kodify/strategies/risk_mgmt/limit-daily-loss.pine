@@ -1,0 +1,129 @@
+// Source: https://kodify.net/tradingview/risks/limit-daily-loss/
+// Limit a strategy’s intra-day losses: TradingView’s strategy.risk.max_intraday_loss() function
+
+//=== Pause a TradingView strategy after a certain intra-day loss
+
+strategy.risk.max_intraday_loss(value, type)
+strategy.risk.max_intraday_loss(value=450, type=strategy.cash)
+strategy.risk.max_intraday_loss(value=0.03, type=strategy.percent_of_equity)
+
+//=== Features of the strategy.risk.max_intraday_loss() function
+
+‘Intra-day’ is the instrument’s trading session
+
+But ‘intra-day’ means 1 bar on daily and higher time frames
+
+This risk management function stops all trading
+
+With negative equity the strategy can stop for good
+
+Losses can be bigger than the ‘maximum’ intra-day loss
+
+This risk management rule is active all the time
+
+An intra-day loss doesn’t need closed trades
+
+We can’t set this risk function conditionally
+
+But an input option can configure this risk rule
+
+// Input for maximum intra-day loss (in currency)
+maxLoss = input(title="Max Intra-Day Loss", type=integer, defval=750)
+
+// Use the input's value with the maximum intra-day loss function
+strategy.risk.max_intraday_loss(value=maxLoss, type=strategy.cash)
+
+// Input for the maximum intra-day loss in equity (%)
+maxPercLoss = input(title="Max Intra-Day Equity Loss(%)", type=integer,
+     defval=10, minval=1, maxval=100) / 100
+
+// Use the input's value with the maximum intra-day loss function
+strategy.risk.max_intraday_loss(value=maxPercLoss,
+     type=strategy.percent_of_equity)
+
+Only impacts the current strategy script
+
+//=== Examples of the strategy.risk.max_intraday_loss() function
+
+//====== Example: don’t risk more than a certain amount per trading day
+
+//@version=3
+strategy(title="Max intra-day loss example", overlay=false,
+     default_qty_type=strategy.fixed, default_qty_value=15)
+
+// Calculate values
+momValue = mom(close, 9)
+emaMom   = ema(momValue, 15)
+
+// Plot values on the chart
+plot(series=momValue, color=blue)
+plot(series=emaMom, color=orange)
+
+hline(price=0, color=gray)
+
+// Limit intra-day loss to 100
+strategy.risk.max_intraday_loss(value=100, type=strategy.cash)
+
+// Determine trading conditions
+enterLong = crossover(momValue, 0) or
+     crossover(momValue, emaMom)
+
+enterShort = crossunder(momValue, 0) or
+     crossunder(momValue, emaMom)
+
+// Submit orders
+if (enterLong)
+    strategy.entry(id="EL", long=true)
+
+if (enterShort)
+    strategy.entry(id="ES", long=false)
+
+//====== Example: limit and track strategy’s intra-day loss
+
+//@version=3
+strategy(title="Max intra-day loss example", overlay=false)
+
+// Calculate moving averages
+fastMA = ema(close, 10)
+slowMA = ema(fastMA, 20)
+
+// Limit strategy risk to 1000
+strategy.risk.max_intraday_loss(value=1000, type=strategy.cash)
+
+// Submit orders
+if (crossover(fastMA, slowMA))
+    strategy.entry(id="EL", long=true, qty=10)
+
+if (crossunder(fastMA, slowMA))
+    strategy.entry(id="ES", long=false, qty=10)
+
+// Get the equity at the close of trading yesterday
+newDay = (dayofmonth != dayofmonth[1])
+
+closeEquity = 0.0
+closeEquity := newDay ? strategy.equity[1] : closeEquity[1]
+
+// Figure out today's losses
+todaysLosses = min(strategy.equity - closeEquity, 0)
+
+// Plot values on the chart
+plot(series=todaysLosses, style=area, color=red)
+
+hline(price=-1000, color=blue, linestyle=solid)
+
+//=== Strengths and weaknesses of strategy.risk.max_intraday_loss()
+
+These are the function’s strong points:
+
+The risk function is easy to use. We simply have to call strategy.risk.max_intraday_loss() and our intra-day loss is limited.
+This risk rule almost guarantees that our strategy doesn’t suffer a huge intra-day loss. If we needed custom code for that, we had to do extensive testing and even then there’s always the possibility of an unknown bug.
+
+There are also a few disadvantages with strategy.risk.max_intraday_loss():
+
+We can’t execute this function conditionally. So it’s active for the entire backtest period, regardless of market conditions or strategy performance.
+We can’t set the amount of intra-day loss with a condition. So whether market conditions are favourable or whether the price volatility is high, our strategy uses the same maximum daily loss.
+The risk function doesn’t look at the number of trades. A big loss caused by a single trade might have happened because of an unexpected and unlikely price spike. The same loss caused by 15 intra-day trades likely means a problem with the strategy itself.
+
+//=== Other TradingView risk management functions
+
+//=== Summary
