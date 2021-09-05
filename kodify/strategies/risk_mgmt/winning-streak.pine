@@ -1,0 +1,135 @@
+// Source: https://kodify.net/tradingview-programming-articles/#risk-management
+// Stop a TradingView strategy based on number of wins in a row
+
+//=== Prevent irrational exuberance: stop trading with a winning streak
+
+//=== Overview: steps to stop trading based on win streak
+
+Optional: set the maximum win streak length with an input.
+See if the strategy just closed a winning trade that extends the streak.
+Calculate how many winning trades there are in a row.
+Compare the win streak length against its maximum.
+Submit entry orders when the streak’s maximum isn’t reached yet.
+Close any open trades as soon as the max win streak is hit.
+
+//====== Step 1. Optional: set max win streak with an input option
+
+// Set the max winning streak length with an input
+maxWinStreak = input(title="Max Winning Streak Length", type=integer,
+     defval=15, minval=1)
+
+//====== Step 2. See if there’s a winner that increased the streak
+
+// See if there's a new winner that increased the streak
+newWin = (strategy.wintrades > strategy.wintrades[1]) and
+     (strategy.losstrades == strategy.losstrades[1]) and
+     (strategy.eventrades == strategy.eventrades[1])
+
+//====== Step 3. Determine the win streak’s length
+
+// Figure out current winning streak length
+streakLen = 0
+
+streakLen := if (newWin)
+    nz(streakLen[1]) + 1
+else
+    if (strategy.losstrades > strategy.losstrades[1]) or
+         (strategy.eventrades > strategy.eventrades[1])
+        0
+    else
+        nz(streakLen[1])
+
+//====== Step 4. See if the maximum winning streak is reached
+
+// See if winning streak is under its limit
+okToTrade = streakLen < maxWinStreak
+
+//====== Step 5. Send entry orders when the winning streak isn’t reached
+
+// Submit orders, but only if win streak max isn't reached
+if (okToTrade and enterLong)
+    strategy.entry(id="EL", long=true)
+
+if (okToTrade and enterShort)
+    strategy.entry(id="ES", long=false)
+
+//====== Step 6. Exit open trades when maximum win streak is hit
+
+// Flatten strategy as soon as max win streak is achieved
+if (not okToTrade)
+    strategy.close_all()
+
+//=== Example strategy: stop trading after several wins in a row
+
+//@version=3
+strategy(title="Stop after winning streak",
+     overlay=false, precision=0)
+
+// STEP 1:
+// Set the max winning streak length with an input
+maxWinStreak = input(title="Max Winning Streak Length", type=integer,
+     defval=15, minval=1)
+
+// Calculate moving averages
+fastMA = ema(close, 5)
+slowMA = ema(close, 25)
+
+// Determine trading conditions
+isFlat     = (strategy.position_size == 0)
+enterLong  = isFlat and crossover(fastMA, slowMA)
+enterShort = isFlat and crossunder(fastMA, slowMA)
+
+// STEP 2:
+// See if there's a new winner that increased the streak
+newWin = (strategy.wintrades > strategy.wintrades[1]) and
+     (strategy.losstrades == strategy.losstrades[1]) and
+     (strategy.eventrades == strategy.eventrades[1])
+
+// STEP 3:
+// Figure out current winning streak length
+streakLen = 0
+
+streakLen := if (newWin)
+    nz(streakLen[1]) + 1
+else
+    if (strategy.losstrades > strategy.losstrades[1]) or
+         (strategy.eventrades > strategy.eventrades[1])
+        0
+    else
+        nz(streakLen[1])
+
+// Show current losing streak and its limit on chart
+plot(series=streakLen, style=columns,
+     color=(streakLen < maxWinStreak) ? green : gray)
+
+bgcolor(color=newWin ? lime : na)
+
+hline(price=maxWinStreak, color=orange, linestyle=solid,
+     linewidth=2)
+hline(price=0, linestyle=solid, color=gray)
+
+// STEP 4:
+// See if winning streak is under its limit
+okToTrade = streakLen < maxWinStreak
+
+// STEP 5:
+// Submit orders, but only if win streak max isn't reached
+if (okToTrade and enterLong)
+    strategy.entry(id="EL", long=true)
+
+if (okToTrade and enterShort)
+    strategy.entry(id="ES", long=false)
+
+// Exit strategy trades
+if (strategy.position_size > 0)
+    strategy.exit(id="XL", stop=lowest(low, 30)[1],
+         limit=highest(high, 15)[1])
+
+if (strategy.position_size < 0)
+    strategy.exit(id="XS", stop=highest(high, 30)[1],
+         limit=lowest(low, 15)[1])
+
+// STEP 6:
+// Flatten strategy as soon as max win streak is achieved
+if (not okToTrade)
+    strategy.close_all()
