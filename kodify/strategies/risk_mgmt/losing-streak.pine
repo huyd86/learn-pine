@@ -1,0 +1,125 @@
+// Source: https://kodify.net/tradingview/risks/losing-streak/
+// How to stop a TradingView strategy after n losses in a row?
+
+//=== Limit trading risks: stop based on losing streak length
+
+//=== Overview: steps to quit trading after extended losing streak
+
+Optional: make an input that configures the maximum losing streak length.
+See if there’s a new loss that increased the losing streak.
+Calculate the number of consecutive losses in a row.
+Check if that losing streak is under the maximum allowed.
+Submit entry trades as long as the maximum losing streak isn’t reached.
+Exit open trades when the losing streak limit is reached.
+
+//====== Step 1. Optional: set losing streak length with an input
+
+// Set the max losing streak length with an input
+maxLosingStreak = input(title="Max Losing Streak Length", type=integer,
+     defval=15, minval=1)
+
+//====== Step 2. See if there’s a new loss that increased the streak
+
+// Check if there's a new losing trade that increased the streak
+newLoss = (strategy.losstrades > strategy.losstrades[1]) and
+     (strategy.wintrades == strategy.wintrades[1]) and
+     (strategy.eventrades == strategy.eventrades[1])
+
+//====== Step 3. Figure out the losing streak length
+
+// Determine current losing streak length
+streakLen = 0
+
+streakLen := if (newLoss)
+    nz(streakLen[1]) + 1
+else
+    if (strategy.wintrades > strategy.wintrades[1]) or
+         (strategy.eventrades > strategy.eventrades[1])
+        0
+    else
+        nz(streakLen[1])
+
+//====== Step 4. See if the streak of losses is under the maximum
+
+// See if losing streak is under max allowed
+okToTrade = streakLen < maxLosingStreak
+
+//====== Step 5. Enter trades as long as streak limit isn’t reached
+
+// Submit orders, with consideration for current losing streak
+if (okToTrade and enterLong)
+    strategy.entry(id="EL", long=true)
+
+if (okToTrade and enterShort)
+    strategy.entry(id="ES", long=false)
+
+//====== Step 6. Close open trades when losing streak is hit
+
+// Flatten strategy when max losing streak is reached
+if (not okToTrade)
+    strategy.close_all()
+
+//=== Example strategy: stop trading with a streak of losses
+
+//@version=3
+strategy(title="Stop after losing streak", overlay=false, precision=0,
+     default_qty_type=strategy.fixed, default_qty_value=5)
+
+// STEP 1:
+// Set the max losing streak length with an input
+maxLosingStreak = input(title="Max Losing Streak Length", type=integer,
+     defval=15, minval=1)
+
+// Calculate moving averages
+fastMA = ema(close, 5)
+slowMA = ema(close, 25)
+
+// Determine trading conditions
+enterLong  = crossover(fastMA, slowMA)
+enterShort = crossunder(fastMA, slowMA)
+
+// STEP 2:
+// Check if there's a new losing trade that increased the streak
+newLoss = (strategy.losstrades > strategy.losstrades[1]) and
+     (strategy.wintrades == strategy.wintrades[1]) and
+     (strategy.eventrades == strategy.eventrades[1])
+
+// STEP 3:
+// Determine current losing streak length
+streakLen = 0
+
+streakLen := if (newLoss)
+    nz(streakLen[1]) + 1
+else
+    if (strategy.wintrades > strategy.wintrades[1]) or
+         (strategy.eventrades > strategy.eventrades[1])
+        0
+    else
+        nz(streakLen[1])
+
+// Show current losing streak and its limit on chart
+plot(series=streakLen, style=columns,
+     color=(streakLen < maxLosingStreak) ? maroon : red)
+
+bgcolor(color=newLoss ? red : na)
+
+hline(price=maxLosingStreak, color=red, linestyle=solid,
+     linewidth=2)
+hline(price=0, linestyle=solid, color=gray)
+
+// STEP 4:
+// See if losing streak is under max allowed
+okToTrade = streakLen < maxLosingStreak
+
+// STEP 5:
+// Submit orders, with consideration for current losing streak
+if (okToTrade and enterLong)
+    strategy.entry(id="EL", long=true)
+
+if (okToTrade and enterShort)
+    strategy.entry(id="ES", long=false)
+
+// STEP 6:
+// Flatten strategy when max losing streak is reached
+if (not okToTrade)
+    strategy.close_all()
