@@ -1,0 +1,109 @@
+// Source: https://kodify.net/tradingview/risks/max-losing-days/
+// Limit a trading strategy’s losing days in a row: TradingView’s strategy.risk.max_cons_loss_days() function
+
+//=== Stop trading long or short after a losing streak
+
+strategy.risk.max_cons_loss_days(count)
+
+//=== Features of TradingView’s strategy.risk.max_cons_loss_days() function
+
+A ‘losing day’ happens when strategy equity declines
+
+A ‘day’ is the 24-hour period starting at midnight
+
+The function makes day-to-day comparisons
+
+Cancels and stops all trading when activated
+
+The function is active all the time
+
+We can’t execute this risk management function conditionally
+
+But can be set with an input option
+
+Only affects the current strategy
+
+//=== Examples of the strategy.risk.max_cons_loss_days() function
+
+//====== Example: stop trading after 5 losing days in a row
+
+//@version=3
+strategy(title="Max consec losing days - example", overlay=true)
+
+// Calculate moving averages
+quickMA = ema(close, 7)
+slowMA  = ema(close, 24)
+
+// Plot values on the chart
+plot(series=quickMA, color=orange)
+plot(series=slowMA, color=teal, linewidth=2)
+
+// Stop trading after 5 days with
+// declining strategy equity in a row
+strategy.risk.max_cons_loss_days(count=5)
+
+// Submit orders
+if (crossover(quickMA, slowMA))
+    strategy.order(id="EL", long=true, qty=1)
+
+if (crossunder(quickMA, slowMA))
+    strategy.order(id="ES", long=false, qty=1)
+
+//=== Example: no more than 3 days with declining strategy equity
+
+//@version=3
+strategy(title="Limit losing days streak", overlay=false)
+
+// Calculate moving averages
+fastMA = sma(close, 20)
+slowMA = sma(close, 50)
+
+// Have at most 3 losing days in a row
+strategy.risk.max_cons_loss_days(count=3)
+
+// Submit orders
+if (crossover(fastMA, slowMA))
+    strategy.entry(id="EL", long=true)
+
+if (crossunder(fastMA, slowMA))
+    strategy.entry(id="ES", long=false)
+
+// Calculate the daily change in strategy equity
+newDay = (dayofmonth != dayofmonth[1])
+
+closeEquity = 0.0, prevEquity = 0.0
+
+closeEquity := newDay ? strategy.equity[1] : closeEquity[1]
+prevEquity  := newDay ? closeEquity[1] : prevEquity[1]
+
+// Plot the daily changes in equity
+plot(series=strategy.equity, color=blue, linewidth=2)
+
+plotColour = (closeEquity > prevEquity) ? green :
+     (closeEquity < prevEquity) ? red :
+     orange
+
+plot(series=newDay ? strategy.equity[1] : na,
+     style=line, color=plotColour, linewidth=3, offset=-1)
+
+// Highlight end of day bars
+bgcolor(color=newDay ? teal : na, transp=75)
+
+//=== Strengths and weaknesses of strategy.risk.max_cons_loss_days()
+
+This is what makes strategy.risk.max_cons_loss_days() helpful:
+
+This risk management function makes it easy to stop a strategy when it experiences a long losing streak.
+We can set the number of losing days with an input option. That makes it easy to configure this risk management rule without having to edit the script’s code.
+
+There are also a couple of weaknesses with strategy.risk.max_cons_loss_days():
+
+We cannot set this risk management function based on a condition. Instead it always remains active for the entire backtest period. That means we can’t, for instance, only enable this risk management rule when volatility is high.
+We can’t set the value that strategy.risk.max_cons_loss_days() uses conditionally. So the entire backtest period uses the same number of consecutive losing days. That’s not ideal given how much market conditions change over time.
+This risk management function looks at the strategy’s equity. That’s not ideal when we have long-term positions. For instance, when the profit of an open position declines several days in a row, strategy equity declines as well. And so strategy.risk.max_cons_loss_days() sees that as a losing streak, even though we’re profitable!
+This risk management function measures a losing streak in days. But for some strategies it’s better to measure that streak in unprofitable, closed trades. Say the market is volatile and we have 50 losing trades in 3 days. But in a quiet market we don’t reach 10 losing trades in that time period. Yet those 50 trades are much more reason to stop trading than ‘just’ 10 losses.
+This risk management rule is an all-or-nothing setting: the strategy trades in full, until the losing streak is hit. Then trading stops altogether. This way our script doesn’t trade smaller sizes when the losing streak gets worse. And neither can recover from its losing streak. That in a sense increases risk because losses become definitive.
+
+//=== Other ways to limit TradingView strategy risks
+
+//=== Summary
