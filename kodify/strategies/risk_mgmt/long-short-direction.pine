@@ -67,5 +67,19 @@ if (crossover(close, hiHighs))
 if (crossunder(close, loLows))
     strategy.entry(id="ES", long=false)
 
+//=== Strengths and weaknesses of strategy.risk.allow_entry_in()
 
+These are strong features of strategy.risk.allow_entry_in():
 
+This risk management function makes it easy to quickly disable long or short trades, without having to alter the script’s code significantly.
+This function also makes it possible for the strategy.entry() function to close positions (and not also open a new trade in the other direction). That means we don’t have to rewrite our strategy.entry() lines with the strategy.exit() function .
+
+But there are also strategy.risk.allow_entry_in() features that aren’t useful:
+
+This risk management function cannot be set conditionally or changed during a backtest. That way strategy.risk.allow_entry_in() affects the entire backtest period and all real-time signals. So to make our strategy stop trading shorts during certain market conditions, we’ll need to come up with custom code.
+This risk management function doesn’t apply to orders send by the strategy.order() function . So when we forbid short entries with strategy.risk.allow_entry_in(), our strategy can still trade short positions with strategy.order().
+We cannot toggle or configure the behaviour of strategy.risk.allow_entry_in() by hand. To change this risk management rule we instead have to edit strategy code. But when we save an edited strategy script, TradingView resets all its input options back to their standard values. So we’ll also need to reconfigure our strategy whenever we change strategy.risk.allow_entry_in().
+
+//=== Other TradingView risk management functions
+
+//=== Summary
