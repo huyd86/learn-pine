@@ -1,0 +1,116 @@
+// Source: https://kodify.net/tradingview/risks/limit-strategy-drawdown/
+// Stop trading based on a maximum loss: TradingView’s strategy.risk.max_drawdown() function
+
+//=== Stop a TradingView strategy based on maximum drawdown
+
+strategy.risk.max_drawdown(value, type)
+
+//=== Features of TradingView’s strategy.risk.max_drawdown() function
+
+Drawdown is calculated based on strategy equity
+
+Losses can be worse than the ‘maximum’ drawdown
+
+This risk management function stops all trading
+
+The risk management function is active all the time
+
+Cannot be set with a true/false condition
+
+But can be set with an input option
+
+// Input that sets the strategy's maximum drawdown (in currency)
+maxDd = input(title="Max Drawdown (Cash)", type=integer, defval=2500, minval=1)
+
+// Use the input's value with the maximum drawdown function
+strategy.risk.max_drawdown(value=maxDd, type=strategy.cash)
+
+// Input for the strategy's maximum drawdown (in % of strategy equity)
+maxPercDd = input(title="Max Drawdown (%)", type=integer, defval=10,
+     minval=1, maxval=100)
+
+// Use the input's value with the maximum drawdown function
+strategy.risk.max_drawdown(value=maxPercDd, type=strategy.percent_of_equity)
+
+Only affects the current strategy script
+
+//=== Examples of the strategy.risk.max_drawdown() function
+
+//====== Example: stop trading after a drawdown of $2,500
+
+//@version=3
+strategy(title="Max Drawdown example", overlay=true)
+
+// Calculate highest high and lowest low
+hiHighs  = highest(high, 20)[1]
+loLows   = lowest(low, 20)[1]
+midPoint = (hiHighs + loLows) / 2
+
+// Show 20-bar highs and lows on the chart
+plot(series=hiHighs, style=circles, color=green, linewidth=2)
+plot(series=loLows, style=circles, color=red, linewidth=2)
+plot(series=midPoint, color=orange)
+
+// Stop trading after losing more than 2,500 currency
+strategy.risk.max_drawdown(value=2500, type=strategy.cash)
+
+// Submit entry orders
+if (crossover(close, hiHighs))
+    strategy.entry(id="EL", long=true, qty=50000)
+
+if (crossunder(close, loLows))
+    strategy.entry(id="ES", long=false, qty=50000)
+
+// Submit stop orders
+if (strategy.position_size > 0)
+    strategy.exit(id="XL", stop=midPoint)
+
+if (strategy.position_size < 0)
+    strategy.exit(id="XS", stop=midPoint)
+
+//====== Example: see the maximum drawdown develop on the chart
+
+//@version=3
+strategy(title="Limit the strategy drawdown", overlay=false)
+
+// Calculate moving averages
+fastMA = sma(close, 20)
+slowMA = sma(close, 50)
+
+// Limit the maximum drawdown to 10k
+strategy.risk.max_drawdown(value=10000, type=strategy.cash)
+
+// Submit orders
+if (crossover(fastMA, slowMA))
+    strategy.entry(id="EL", long=true, qty=10)
+
+if (crossunder(fastMA, slowMA))
+    strategy.entry(id="ES", long=false, qty=10)
+
+// Calculate strategy drawdown
+maxEquity = 0.0
+maxEquity := max(strategy.equity, nz(maxEquity[1]))
+
+drawdown = strategy.equity - maxEquity
+
+// Plot the strategy's drawdown
+plot(series=drawdown, linewidth=2,
+     color=drawdown > drawdown[1] ? green : red)
+
+//=== Strengths and weaknesses of strategy.risk.max_drawdown()
+
+The strong features of this risk management function are:
+
+strategy.risk.max_drawdown() makes it easy to limit the strategy’s loss based on cash or strategy equity.
+The function virtually guarantees that trading actually stops when our strategy reaches its maximum drawdown. (If we code something ourselves, there’s always the chance of a mistake.)
+When we set this risk management function with an input option, we can easily tweak the maximum drawdown value without having to edit the strategy’s code.
+
+There are also a few limitations with strategy.risk.max_drawdown():
+
+This risk management function can’t be set with a condition. It instead keeps active for the entire backtest period, and also uses the same maximum drawdown value every time. This way we can’t account for changes in strategy conditions and price volatility.
+The risk management function stops trading for the entire backtest period and all real-time signals. That doesn’t give the strategy a chance to recover. It instead guarantees that the maximum drawdown is final. This approach is too harsh when our strategy only temporarily suffers due to unexpected market conditions.
+strategy.risk.max_drawdown() doesn’t consider the number of trades. A loss of $2,500 with 3 trades might be anomaly (like a flash crash or central bank intervention), but the same loss over 75 trades definitely signals a problem with the strategy’s edge.
+
+//=== Other built-in TradingView risk management functions
+
+//=== Summary
