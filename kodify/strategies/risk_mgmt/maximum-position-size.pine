@@ -1,0 +1,130 @@
+// Source: https://kodify.net/tradingview/risks/maximum-position-size/
+// Limit a strategy’s maximum position size: TradingView’s strategy.risk.max_position_size() function
+
+//=== Limit the size of a TradingView strategy position with code
+
+strategy.risk.max_position_size(contracts)
+
+//=== Features of TradingView’s strategy.risk.max_position_size() function
+
+This risk rule reduces or prevents entry orders
+
+Maximum position size doesn’t apply to strategy.order()
+
+Multiple entries simultaneously give a position that’s too big
+
+// Go long when the 5-bar EMA crosses the 15-bar EMA
+if (crossover(ema(close, 5), ema(close, 15)))
+    strategy.entry(id="EL", long=true, qty=10)
+    strategy.entry(id="EL 2", long=true, qty=10)
+
+// Go long when the 5-bar EMA crosses the 15-bar EMA
+if (crossover(ema(close, 5), ema(close, 15)))
+    strategy.entry(id="EL", long=true, qty=20)
+
+This risk function is active all the time
+
+This risk function does not reduce an open position’s size
+
+Position sizes on the chart can look too big
+
+This risk rule cannot be set conditionally
+
+But an input option can set the maximum position size
+
+This risk rule only applies to the current script
+
+//=== Examples of the strategy.risk.max_position_size() function
+
+//====== Example: don’t trade more than 500 shares at a time
+
+//@version=3
+strategy(title="Max position size example", overlay=true,
+     pyramiding=10, default_qty_type=strategy.percent_of_equity,
+     default_qty_value=10)
+
+// Calculate the moving averages
+quickMA = ema(close, 10)
+slowMA  = ema(close, 40)
+
+// Plot MA values on the chart
+plot(series=quickMA, color=orange)
+plot(series=slowMA, color=teal, linewidth=2)
+
+// Trade at most 500 shares long or short
+strategy.risk.max_position_size(contracts=500)
+
+// Determine trading conditions
+enterLong  = crossover(quickMA, slowMA)
+enterShort = crossunder(quickMA, slowMA)
+
+// Submit initial entry orders
+if (enterLong)
+    strategy.entry(id="EL", long=true)
+
+if (enterShort)
+    strategy.entry(id="ES", long=false)
+
+// Submit additional entry orders, every 5 bars since entry
+if (strategy.position_size > 0 and barssince(enterLong) % 5 == 0)
+    strategy.entry(id="EL+", long=true)
+
+if (strategy.position_size < 0 and barssince(enterShort) % 5 == 0)
+    strategy.entry(id="ES+", long=false)
+
+//====== Example: limit and track maximum position size
+
+//@version=3
+strategy(title="Example: maximum position size", overlay=false,
+     pyramiding=15, default_qty_type=strategy.fixed,
+     default_qty_value=100, precision=0)
+
+// Calculate the moving averages
+quickMA = ema(close, 25)
+slowMA  = ema(close, 200)
+
+// Trade at most 1,000 shares long or short
+strategy.risk.max_position_size(contracts=1000)
+
+// Plot position size and its maximum
+plot(series=strategy.position_size, style=areabr, color=
+     strategy.position_size > 0 ? green : red)
+
+hline(price=1000, color=orange, linestyle=solid)
+hline(price=-1000, color=orange, linestyle=solid)
+
+// Determine trading conditions
+enterLong  = crossover(quickMA, slowMA)
+enterShort = crossunder(quickMA, slowMA)
+
+// Submit initial entry orders
+if (enterLong)
+    strategy.entry(id="EL", long=true)
+
+if (enterShort)
+    strategy.entry(id="ES", long=false)
+
+// Submit additional entry orders, every 5 bars since entry
+if (strategy.position_size > 0 and barssince(enterLong) % 5 == 0)
+    strategy.entry(id="EL+", long=true)
+
+if (strategy.position_size < 0 and barssince(enterShort) % 5 == 0)
+    strategy.entry(id="ES+", long=false)
+
+//=== Strengths and weaknesses of strategy.risk.max_position_size()
+
+The strong features of strategy.risk.max_position_size() are:
+
+This risk management function is a quick way to limit the strategy’s maximum position size. It saves us from implementing and testing our own code.
+This function automatically makes TradingView use the proper order size when we’re close to the maximum position size. That way we don’t have to calculate order sizes ourselves.
+
+There are also a couple of limitations with strategy.risk.max_position_size():
+
+We can’t enable or disable this function conditionally, so it remains active during the entire backtest period and all real-time signals.
+We can’t set the value that strategy.risk.max_position_size() conditionally. So our strategy always uses the same maximum position size, regardless of market conditions or strategy performance.
+We can’t define a maximum short and maximum long position size. The setting of strategy.risk.max_position_size() applies to both long or short positions at the same time.
+This risk management function doesn’t limit orders send by the strategy.order() function . So when we use that order function, we can still get a position that’s too big!
+
+//=== Other TradingView risk management functions
+
+//=== Summary
