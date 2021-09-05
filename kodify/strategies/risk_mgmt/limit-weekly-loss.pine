@@ -1,0 +1,111 @@
+// Source: https://kodify.net/tradingview/risks/limit-weekly-loss/
+// How to stop a TradingView strategy based on weekly loss?
+
+//=== Stop trading based on weekly strategy loss in TradingView
+
+//=== Overview: steps to stop trading based on weekly loss
+
+Optional: Make an input option that configures the maximum weekly loss.
+Fetch the strategy equity as it was at the close of trading last week.
+Compare that last week equity with the current equity to figure out the strategy’s weekly loss.
+Then compare that weekly loss with the maximum.
+Include that comparison with the strategy’s entry logic. That way no entry order is send when the weekly loss is reached.
+And finally exit the strategy’s open market position when the weekly loss is reached. That way trading stops completely.
+
+//====== Step 1. Make an input option (optional)
+
+// Set the weekly max loss with a custom option
+maxLoss = input(title="Weekly Max Loss", type=integer,
+     defval=1250, minval=1) * -1
+
+//====== Step 2. Get strategy equity of last week
+
+// Figure out strategy equity at close of trading last week
+equityLastWeek = 0.0
+equityLastWeek := (dayofweek == monday) and (dayofweek != dayofweek[1]) ?
+     strategy.equity[1] : equityLastWeek[1]
+
+//====== Step 3. Determine the strategy’s weekly loss
+
+// Calculate weekly strategy loss
+weeklyLoss = strategy.equity - equityLastWeek
+
+//====== Step 4. Compare weekly performance against maximum loss
+
+// See if the strategy is still allowed to trade
+okToTrade = (weeklyLoss > maxLoss)
+
+//====== Step 5. Check weekly loss before sending entry orders
+
+// Submit orders
+if (okToTrade and enterLong)
+    strategy.entry(id="EL", long=true)
+
+if (okToTrade and enterShort)
+    strategy.entry(id="ES", long=false)
+
+//====== Step 6. Flatten the strategy when weekly loss is hit
+
+// Close the open position when the weekly loss is hit
+if (not okToTrade)
+    strategy.close_all()
+
+//=== Example strategy: stop trading based on weekly loss
+
+//@version=3
+strategy(title="Stop trading after weekly loss", overlay=false,
+     default_qty_type=strategy.fixed, default_qty_value=10)
+
+// STEP 1:
+// Configure maximum weekly loss with input
+maxLoss = input(title="Weekly Max Loss", type=integer,
+     defval=1250, minval=1) * -1
+
+// Calculate moving averages
+fastMA = ema(close, 5)
+slowMA = ema(close, 25)
+
+// Determine trading conditions
+enterLong  = crossover(fastMA, slowMA)
+enterShort = crossunder(fastMA, slowMA)
+
+// STEP 2:
+// Figure out strategy equity at close of trading last week
+equityLastWeek = 0.0
+equityLastWeek := (dayofweek == monday) and (dayofweek != dayofweek[1]) ?
+     strategy.equity[1] : equityLastWeek[1]
+
+// STEP 3:
+// Calculate strategy loss this week
+weeklyLoss = strategy.equity - equityLastWeek
+
+// Show weekly loss and trigger level on the chart
+plot(series=min(weeklyLoss, 0), style=area, color=red, transp=85)
+
+hline(price=0, color=orange, linestyle=solid)
+hline(price=maxLoss, color=red, linestyle=solid, linewidth=3)
+
+// STEP 4:
+// Determine if the strategy is still allowed to trade
+okToTrade = (weeklyLoss > maxLoss)
+
+// STEP 5:
+// Submit orders
+if (okToTrade and enterLong)
+    strategy.entry(id="EL", long=true)
+
+if (okToTrade and enterShort)
+    strategy.entry(id="ES", long=false)
+
+// STEP 6:
+// Close the open position when the weekly loss is hit
+if (not okToTrade)
+    strategy.close_all()
+
+
+
+
+
+
+
+
