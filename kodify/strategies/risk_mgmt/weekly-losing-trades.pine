@@ -1,0 +1,112 @@
+// Source: https://kodify.net/tradingview/risks/weekly-losing-trades/
+// Stop a TradingView strategy based on weekly losing trades
+
+//=== Stop a strategy based on weekly losses count
+
+//=== Overview: steps to stop trading based on weekly losing trades
+
+Optional: create an input that sets the maximum losing trades per week.
+Get the strategy’s number of losing trades at the end of last week.
+Determine the total losses during the current week.
+Compare that number of losses against the maximum.
+Only submit entry orders when the losses count is below its maximum.
+Exit open trades when the maximum losses per week is reached.
+
+//====== Step 1. Optional: set the max losses per week with an input
+
+// Configure the max losing trades with an input
+maxLosses = input(title="Maximum Losing Trades (Per Week)",
+     type=integer, defval=10, minval=1)
+
+//====== Step 2. Get the strategy’s total losing trades at last week’s end
+
+// Get the strategy's total losses at last week's end
+prevLoseTrades = 0
+
+prevLoseTrades := if (dayofweek == monday) and (dayofweek != dayofweek[1])
+    strategy.losstrades[1]
+else
+    nz(prevLoseTrades[1])
+
+//====== Step 3. Determine total losses this week
+
+// Determine the losing trades this week
+weeklyLosses = strategy.losstrades - prevLoseTrades
+
+//====== Step 4. See if weekly losses are below the maximum
+
+// See if losses count is under maximum
+okToTrade = weeklyLosses < maxLosses
+
+//====== Step 5. Submit entries only when weekly losses aren’t hit
+
+// Submit orders, but only when max losses aren't hit
+if (okToTrade and enterLong)
+    strategy.entry(id="EL", long=true)
+
+if (okToTrade and enterShort)
+    strategy.entry(id="ES", long=false)
+
+//====== Step 6. Exit open trades when weekly losses limit is hit
+
+// Flatten strategy when weekly losing trades hit their max
+if (not okToTrade)
+    strategy.close_all()
+
+//=== Example strategy: stop trading after n losses in a week
+
+//@version=3
+strategy(title="Limit weekly losing trades",
+     overlay=false, precision=0)
+
+// STEP 1:
+// Configure the max losing trades with an input
+maxLosses = input(title="Maximum Losing Trades (Per Week)",
+     type=integer, defval=10, minval=1)
+
+// Calculate moving averages
+fastMA = ema(close, 5)
+slowMA = ema(close, 25)
+
+// Determine trading conditions
+enterLong  = crossover(fastMA, slowMA)
+enterShort = crossunder(fastMA, slowMA)
+
+// STEP 2:
+// Get the strategy's total losses at last week's end
+prevLoseTrades = 0
+
+prevLoseTrades := if (dayofweek == monday) and (dayofweek != dayofweek[1])
+    strategy.losstrades[1]
+else
+    nz(prevLoseTrades[1])
+
+// STEP 3:
+// Determine the losing trades this week
+weeklyLosses = strategy.losstrades - prevLoseTrades
+
+// Plot weekly losing trades and maximum
+plot(series=weeklyLosses, style=area, linewidth=4,
+     color=red, transp=85)
+
+hline(price=0, color=gray, linestyle=solid)
+hline(price=maxLosses, color=maroon, linestyle=solid,
+     linewidth=2)
+
+// STEP 4:
+// See if losses count is under maximum
+okToTrade = weeklyLosses < maxLosses
+
+// STEP 5:
+// Submit orders, but only when max losses aren't hit
+if (okToTrade and enterLong)
+    strategy.entry(id="EL", long=true)
+
+if (okToTrade and enterShort)
+    strategy.entry(id="ES", long=false)
+
+// STEP 6:
+// Flatten strategy when weekly losing
+// trades hit their max
+if (not okToTrade)
+    strategy.close_all()
