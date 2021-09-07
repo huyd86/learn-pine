@@ -1,3 +1,113 @@
 // Source: https://kodify.net/tradingview/risks/limit-weekly-trades/
 // How to limit how often a TradingView strategy trades during the week?
 
+//=== No overtrading: stop strategy based on weekly trade count
+
+//=== Overview: steps to stop trading based on weekly trades
+
+Optional: make an input that sets the weekly number of trades.
+Fetch the strategy’s total trades from the end of last week.
+During the week, use last week’s value to calculate how many trades the strategy did.
+Compare the weekly trades against the maximum trades per week.
+Only submit entry orders when the weekly trades limit isn’t reached.
+And close any open position when the weekly trades limit is hit.
+
+//====== Step 1. Set weekly trades with an input (optional)
+
+// Make an input for the number of allowed trades per week
+maxTrades = input(title="Maximum Trades Per Week", type=integer,
+     minval=1, defval=20)
+
+//====== Step 2. Get the strategy’s trade count at the end of last week
+
+// Figure out the number of trades at last week's end
+tradesLastWeek = 0
+
+tradesLastWeek := if (dayofweek == monday) and (dayofweek != dayofweek[1])
+    strategy.closedtrades[1] + strategy.opentrades[1]
+else
+    tradesLastWeek[1]
+
+//====== Step 3. Calculate number of trades this week
+
+// Calculate number of trades this week
+weeklyTrades = (strategy.closedtrades + strategy.opentrades) -
+     tradesLastWeek
+
+//====== Step 4. Compare weekly trades against the maximum
+
+// See if the strategy is still allowed to trade
+okToTrade = (weeklyTrades < maxTrades)
+
+//====== Step 5. Include the weekly trades check in the entry conditions
+
+// Submit orders, with consideration for weekly trades
+if (okToTrade and enterLong)
+    strategy.entry(id="EL", long=true)
+
+if (okToTrade and enterShort)
+    strategy.entry(id="ES", long=false)
+
+//====== Step 6. Stop the strategy when weekly trades maximum is hit
+
+// Close any open position when we hit the weekly trades max
+if (not okToTrade)
+    strategy.close_all()
+
+//=== Example strategy: stop trading based on weekly trade count
+
+//@version=3
+strategy(title="Limit weekly trades", overlay=false, precision=0,
+     default_qty_type=strategy.fixed, default_qty_value=20)
+
+// STEP 1:
+// Make an input for the number of allowed trades per week
+maxTrades = input(title="Maximum Trades Per Week", type=integer,
+     minval=1, defval=20)
+
+// Calculate moving averages
+fastMA = ema(close, 5)
+slowMA = ema(close, 25)
+
+// Determine trading conditions
+enterLong  = crossover(fastMA, slowMA)
+enterShort = crossunder(fastMA, slowMA)
+
+// STEP 2:
+// Figure out the number of trades at last week's end
+tradesLastWeek = 0
+
+tradesLastWeek := if (dayofweek == monday) and (dayofweek != dayofweek[1])
+    strategy.closedtrades[1] + strategy.opentrades[1]
+else
+    tradesLastWeek[1]
+
+// STEP 3:
+// Calculate number of trades this week
+weeklyTrades = (strategy.closedtrades + strategy.opentrades) -
+     tradesLastWeek
+
+// Show weekly trades and its trigger level
+plot(series=weeklyTrades, style=columns,
+     color=(weeklyTrades >= maxTrades) ? orange : teal)
+
+hline(price=maxTrades, color=red, linestyle=solid,
+     linewidth=2)
+hline(price=0, linestyle=solid, color=gray)
+
+// STEP 4:
+// See if the strategy is still allowed to trade
+okToTrade = (weeklyTrades < maxTrades)
+
+// STEP 5:
+// Submit orders, with consideration for weekly trades
+if (okToTrade and enterLong)
+    strategy.entry(id="EL", long=true)
+
+if (okToTrade and enterShort)
+    strategy.entry(id="ES", long=false)
+
+// STEP 6:
+// Close any open position when we hit the weekly trades max
+if (not okToTrade)
+    strategy.close_all()
