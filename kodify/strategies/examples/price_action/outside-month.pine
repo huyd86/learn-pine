@@ -1,0 +1,69 @@
+// Source: https://kodify.net/tradingview/strategies/outside-month/
+// The Outside Month strategy coded for TradingView
+
+//=== Trading rules for the Outside Month strategy
+
+Enter long rules:
+On the first day of the month, buy the S&P 500 index when the high of the previous month was higher than the high 2 months ago, and
+The low of the previous month was lower than the low 2 months ago.
+Exit long rules:
+Exit the long position at the close of trading for the last day of the month.
+Enter short rules:
+On the first day of the month, short the S&P 500 index when the high of the previous month was lower than the high 2 months ago, and
+The low of the previous month was higher than the low 2 months ago.
+Exit short rules:
+Cover the short position on the close of the last day of the month.
+
+//=== Full code: the Outside Month TradingView strategy
+
+//@version=3
+
+// Step 1. Define strategy settings
+strategy(title="Outside Month", overlay=true,
+     pyramiding=0, initial_capital=100000,
+     default_qty_type=strategy.fixed,
+     default_qty_value=100,
+     commission_type=strategy.commission.cash_per_order,
+     commission_value=8, slippage=2)
+
+// Step 2. Calculate strategy values
+highPrevMonth = security(tickerid, "M", high)[1]
+lowPrevMonth  = security(tickerid, "M", low)[1]
+
+high2MonthsBack = security(tickerid, "M", high[1])[1]
+low2MonthsBack  = security(tickerid, "M", low[1])[1]
+
+outsideMonth = (highPrevMonth > high2MonthsBack) and
+     (lowPrevMonth < low2MonthsBack)
+insideMonth = (highPrevMonth < high2MonthsBack) and
+     (lowPrevMonth > low2MonthsBack)
+
+// Step 3. Output strategy data
+bgcolor(color=outsideMonth ? green : na, transp=90)
+bgcolor(color=insideMonth ? red : na, transp=90)
+
+// Step 4. Determine long trading conditions
+enterLong = outsideMonth
+
+exitLong = (month != month[1]) and
+     (strategy.position_size > 0)
+
+// Step 5. Code short trading conditions
+enterShort = insideMonth
+
+exitShort = (month != month[1]) and
+     (strategy.position_size < 0)
+
+// Step 6. Submit entry orders
+if (enterLong)
+    strategy.entry(id="EL", long=true)
+
+if (enterShort)
+    strategy.entry(id="ES", long=false)
+
+// Step 7. Submit exit orders
+if (exitLong and not enterShort)
+    strategy.order(id="XL", long=false, qty=strategy.position_size)
+
+if (exitShort and not enterLong)
+    strategy.order(id="XS", long=true, qty=abs(strategy.position_size))
