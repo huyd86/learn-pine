@@ -1,0 +1,95 @@
+// Source: https://kodify.net/tradingview/strategies/donchian-trend-time-exit/
+// The Donchian Trend with Time Exit strategy programmed for TradingView
+
+//=== Trading rules of the Donchian Trend Time Exit strategy
+
+Enter long rules:
+Open a long position when prices rise above the highest high of the previous 20 days, and
+The 25-day Exponential Moving Average (EMA) is above the 350-day EMA.
+Exit long rules:
+Close the long position after 80 days.
+Enter short rules:
+Enter a short position when prices fall below the lowest low of the previous 20 days, and
+The 25-day EMA is below the 350-day EMA.
+Exit short rules:
+Cover the short position after 80 days.
+Position sizing:
+For long and short positions, determine the position size by dividing 0.5% of equity by the value of the market’s 20-bar Average True Range (ATR) in terms of dollars.
+
+//=== Full code: the Donchian Trend with Time Exit strategy
+
+//@version=3
+// Step 1. Define strategy settings
+strategy(title="Donchian Trend with Time Exit", overlay=true,
+     pyramiding=0, initial_capital=100000,
+     commission_type=strategy.commission.cash_per_order,
+     commission_value=4, slippage=2)
+
+hiHighsLen = input(title="Highest Highs Length", type=integer, defval=20)
+loLowsLen  = input(title="Lowest Low Length", type=integer, defval=20)
+
+fastMALen = input(title="Fast MA Length", type=integer, defval=25)
+slowMALen = input(title="Slow MA Length", type=integer, defval=350)
+
+timeExitLong  = input(title="Time Exit Long (Bars)", type=integer, defval=80)
+timeExitShort = input(title="Time Exit Short (Bars)", type=integer, defval=80)
+
+usePosSize = input(title="Use Position Sizing?", type=bool, defval=true)
+riskPerc   = input(title="Risk %", type=float, defval=0.5, step=0.25)
+
+// Step 2. Calculate strategy values
+fastMA = ema(close, fastMALen)
+slowMA = ema(close, slowMALen)
+
+hiHighs = highest(high, hiHighsLen)[1]
+loLows  = lowest(low, loLowsLen)[1]
+
+// Calculate position size
+riskEquity  = (riskPerc / 100) * strategy.equity
+atrCurrency = (atr(20) * syminfo.pointvalue)
+posSize     = usePosSize ? floor(riskEquity / atrCurrency) : 1
+
+// Set backtest window
+backtestWindow = time < (timenow - 86400000 * 5)
+
+// Step 3. Determine long trading conditions
+enterLong = (close > hiHighs) and (fastMA > slowMA) and
+     backtestWindow and (strategy.position_size < 1)
+
+exitLong = (barssince(enterLong) > timeExitLong) and
+     (strategy.position_size > 0)
+
+// Step 4. Code short trading conditions
+enterShort = (close < loLows) and (fastMA < slowMA) and
+     backtestWindow and (strategy.position_size > -1)
+
+exitShort = (barssince(enterShort) > timeExitShort) and
+     (strategy.position_size < 0)
+
+// Step 5. Output strategy data
+plot(series=hiHighs, color=green, title="Highest Highs")
+plot(series=loLows, color=red, title="Lowest Lows")
+
+plot(series=fastMA, color=(fastMA > slowMA) ? green : red,
+     linewidth=2, title="Fast EMA")
+
+bgColour = enterLong ? green :
+     enterShort ? red :
+     na
+bgcolor(color=bgColour, transp=90)
+
+// Step 6. Submit entry orders
+if (enterLong)
+    strategy.entry(id="EL", long=true, qty=posSize)
+
+if (enterShort)
+    strategy.entry(id="ES", long=false, qty=posSize)
+
+// Step 7. Submit exit orders
+if (exitLong)
+    strategy.order(id="XL", long=false, qty=strategy.position_size)
+
+if (exitShort)
+    strategy.order(id="XS", long=true, qty=abs(strategy.position_size))
+
+strategy.close_all(when=not backtestWindow)
