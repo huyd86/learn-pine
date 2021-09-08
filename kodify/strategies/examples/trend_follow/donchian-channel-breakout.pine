@@ -1,0 +1,74 @@
+// Source: https://kodify.net/tradingview/strategies/donchian-channel-breakout/
+// Program the Donchian Channel Breakout trading strategy in TradingView Pine
+
+//=== Trading rules of the Donchian Channel Breakout strategy
+
+Enter long and exit short:
+Go long (and close any short positions) with a stop order as prices cross the upper Donchian Channel band of 100 bars.
+Enter short and exit long:
+Go short (and close any long positions) with a stop order as prices cross the lower Donchian Channel band of 100 bars.
+Position sizing:
+The initial risk for each position (difference between entry price and four times the 10-bar Average True Range (ATR)) is 2% of equity.
+The maximum exposure (that is, the margin to equity ratio) for a single position is 10% of equity.
+
+//=== Full code: the Donchian Channel Breakout strategy for TradingView
+
+//@version=3
+// Step 1) Define strategy settings
+strategy(title="Donchian Channel Breakout", overlay=true,
+     pyramiding=0, initial_capital=100000,
+     commission_type=strategy.commission.cash_per_order,
+     commission_value=4, slippage=2)
+
+dochLen = input(title="Donchian Channel Length", type=integer, defval=100)
+
+// Position sizing inputs
+usePosSize = input(title="Use Position Sizing?", type=bool,
+     defval=true)
+
+atrLen = input(title="ATR Length", type=integer, defval=10)
+atrRiskOffset = input(title="ATR Risk Offset Multiple", type=float,
+     defval=4, step=.25)
+
+maxRisk = input(title="Max Position Risk %", type=float,
+     defval=2, step=.25, minval=0.25, maxval=15)
+maxExposure = input(title="Max Position Exposure %", type=float,
+     defval=10, step=1, minval=1, maxval=100)
+marginPerc = input(title="Margin %", type=integer, defval=10,
+     minval=1, maxval=100)
+
+// Step 2) Calculate strategy values
+upperband = highest(high, dochLen)[1]
+lowerband = lowest(low, dochLen)[1]
+
+// Calculate position size
+riskEquity = (maxRisk * 0.01) * strategy.equity
+riskTrade  = (atr(atrLen) * atrRiskOffset) * syminfo.pointvalue
+
+maxPos = ((maxExposure * 0.01) * strategy.equity) /
+     ((marginPerc * 0.01) * (close * syminfo.pointvalue))
+
+posSize = usePosSize ? min(floor(riskEquity / riskTrade), maxPos) : 1
+
+// Step 3) Output strategy data
+plot(series=upperband, color=green, linewidth=2,
+     title="DoCh Upperband")
+plot(series=lowerband, color=red, linewidth=2,
+     title="DoCh Lowerband")
+
+// Step 4) Determine trading conditions
+tradeWindow  = time <= timenow - (86400000 * 3)
+
+tradeAllowed = tradeWindow and (n > dochLen)
+
+// Step 5) Submit entry orders
+if (strategy.position_size < 1) and tradeAllowed
+    strategy.entry(id="EL", long=true, qty=posSize,
+         stop=upperband + syminfo.mintick)
+
+if (strategy.position_size > -1) and tradeAllowed
+    strategy.entry(id="ES", long=false, qty=posSize,
+         stop=lowerband - syminfo.mintick)
+
+// Step 6) Submit exit orders
+strategy.close_all(when=not tradeWindow)
