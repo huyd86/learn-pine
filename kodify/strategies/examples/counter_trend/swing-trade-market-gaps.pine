@@ -1,0 +1,93 @@
+// https://kodify.net/tradingview/strategies/swing-trade-market-gaps/
+// The Swing Trade Market Gaps strategy coded in TradingView
+
+//=== Trading rules of the Swing Trade Market Gaps strategy
+
+Enter long rules:
+Open a long position when the instrument gaps down by more than 5 percent, and
+The instrument was down the previous day, and
+The market as a whole (that is, the Nasdaq 100 QQQ tracker) gaps down more than 0.5 percent.
+Exit long rules:
+Hold the long position at least until the next morning,
+Then sell the position whenever the instrument goes lower than the previous day’s close.
+Enter short rules:
+Open a short position when the instrument gaps up by more than 5 percent, and
+The instrument was up the previous day, and
+The QQQs gap up with more than 0.5 percent.
+Exit short rules:
+Hold the position at least until the next morning,
+Then cover the short position whenever the instrument goes higher than the previous day’s close.
+
+//=== Full code: Swing Trade Market Gaps TradingView strategy
+
+//@version=3
+
+// Step 1. Define strategy settings
+strategy(title="Swing Trade Market Gaps", overlay=false,
+     pyramiding=0, initial_capital=100000,
+     default_qty_type=strategy.fixed,
+     default_qty_value=100,
+     commission_type=strategy.commission.cash_per_order,
+     commission_value=8, slippage=2)
+
+gapDownSize = input(title="Gap Down Size %", type=float, defval=-5, step=.25)
+mktGapDown  = input(title="Market Gap Down %", type=float, defval=-0.50, step=.25)
+
+gapUpSize = input(title="Gap Up Size %", type=float, defval=5, step=.25)
+mktGapUp  = input(title="Market Gap Up %", type=float, defval=0.50, step=.25)
+
+// Step 2. Calculate strategy values
+gapSize    = ((open - close[1]) / close[1]) * 100
+marketGap  = security("BATS:QQQ", period, gapSize)
+prvDayDown = (close[1] < open[1])
+prvDayUp   = (close[1] > open[1])
+
+// Step 3. Determine long trading conditions
+enterLong = (gapSize < gapDownSize) and
+     prvDayDown and (marketGap < mktGapDown)
+
+exitLong = (close < close[1]) and
+     (strategy.position_size > 0) and
+     (barssince(enterLong) > 1)
+
+// Step 4. Code short trading conditions
+enterShort = (gapSize > gapUpSize) and
+     prvDayUp and (marketGap > mktGapUp)
+
+exitShort = (close > close[1]) and
+     (strategy.position_size < 0) and
+     (barssince(enterShort) > 1)
+
+// Step 5. Output strategy data
+// Display gap sizes
+plot(series=marketGap, color=orange, style=columns,
+     title="Market Gap %")
+plot(series=gapSize, color=teal, style=columns,
+     title="Gap Size %")
+
+// Highlight gap trigger level
+plot(series=gapDownSize, color=green, transp=70,
+     title="Gap Down Size [Long Entry]")
+plot(series=gapUpSize, color=red, transp=70,
+     title="Gap Up Size [Short Entry]")
+
+// Highlight long and short signals
+bgColour = enterLong ? green :
+     enterShort ? red :
+     na
+bgcolor(color=bgColour, transp=85)
+
+// Step 6. Submit entry orders
+if (enterLong)
+    strategy.entry(id="EL", long=true)
+
+if (enterShort)
+    strategy.entry(id="ES", long=false)
+
+// Step 7. Submit exit orders
+if (exitLong)
+    strategy.order(id="XL", long=false, qty=strategy.position_size)
+
+if (exitShort)
+    strategy.order(id="XS", long=true, qty=abs(strategy.position_size))
+    
