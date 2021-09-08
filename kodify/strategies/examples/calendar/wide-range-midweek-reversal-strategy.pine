@@ -1,0 +1,70 @@
+// Source: https://kodify.net/tradingview/strategies/wide-range-midweek-reversal-strategy/
+// The Wide-Range Midweek Reversal strategy coded for TradingView
+
+//=== Trading rules of the Wide-Range Midweek Reversal strategy
+
+Enter long rules:
+Buy on the open of Wednesday when the Tuesday low is 1.5 times the 10-day Average True Range (ATR) less than the Monday high (that is, the range is 50 percent higher than its average range), and
+The Tuesday low is less than the Monday low.
+Exit long rules:
+Close the long position when there are two consecutive up closes on the daily time frame.
+Enter short rules:
+Short on the open of Wednesday when Tuesday’s close is 1 percent higher than Friday’s close, and
+Wednesday’s open is higher than Tuesday’s close.
+Exit short rules:
+Cover the short position on the second close of two consecutive down closes.
+
+//=== Full code: the Wide-Range Midweek Reversal strategy for TradingView
+
+//@version=3
+
+// Step 1. Define strategy settings
+strategy(title="Wide-Range Midweek Reversal", overlay=true,
+     pyramiding=0, initial_capital=100000,
+     default_qty_type=strategy.fixed,
+     default_qty_value=100,
+     commission_type=strategy.commission.cash_per_order,
+     commission_value=8, slippage=2)
+
+atrLen  = input(title="ATR Length", type=integer, defval=10)
+atrMult = input(title="ATR Multiple", type=float, defval=1.5, step=.1)
+
+closePerc = input(title="Short Higher Close %", type=float, defval=1, step=.25)
+
+// Step 2. Calculate strategy values
+atrValue = atr(atrLen)
+
+// Step 3. Determine long trading conditions
+enterLong = (dayofweek == tuesday) and
+     (low < low[1]) and
+     (low * (atrValue * atrMult)) < high[1]
+
+exitLong = (close > close[1]) and (close[1] > close[2]) and
+     (strategy.position_size > 0)
+
+// Step 4. Code short trading conditions
+enterShort = (dayofweek == tuesday) and
+     ((close - close[2]) / close[2]) > (closePerc * 0.01)
+
+exitShort = (close < close[1]) and (close[1] < close[2]) and
+     (strategy.position_size < 0)
+
+// Step 5. Output strategy data
+bgColour = enterLong ? green :
+     enterShort ? red :
+     na
+bgcolor(color=bgColour, transp=90)
+
+// Step 6. Submit entry orders
+if (enterLong)
+    strategy.entry(id="EL", long=true)
+
+if (enterShort)
+    strategy.entry(id="ES", long=false)
+
+// Step 7. Submit exit orders
+if (exitLong and not enterShort)
+    strategy.order(id="XL", long=false, qty=strategy.position_size)
+
+if (exitShort and not enterLong)
+    strategy.order(id="XS", long=true, qty=abs(strategy.position_size))
