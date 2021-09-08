@@ -1,0 +1,92 @@
+// Source: https://kodify.net/tradingview/strategies/triple-moving-average/
+// The Triple Moving Average strategy coded as a TradingView Pine Script
+
+//=== Trading rules for the Triple Moving Average strategy
+
+Enter long rules:
+Open a long position when the 150-day moving average crosses over the 250-day moving average, and
+Both the 150-day moving average and 250-day moving average are above the 350-day moving average.
+Exit long rules:
+Sell the long position when the 150-day moving average crosses below the 250-day moving average.
+Enter short rules:
+Open a short position when the 150-day moving average crosses under the 250-day moving average, and
+Both the 150-day moving average and 250-day moving average are below the 350-day moving average.
+Exit short rules:
+Cover a short position when the 150-day moving average crosses above the 250-day moving average.
+Position sizing:
+For long and short positions, determine the position size by dividing 0.5% of equity by the value of the market’s 20-bar Average True Range (ATR) in terms of dollars.
+
+//=== Full code: Triple Moving Average TradingView strategy
+
+//@version=3
+
+// 1. Define strategy settings
+strategy(title="Triple Moving Average", overlay=true,
+     pyramiding=0, initial_capital=100000,
+     commission_type=strategy.commission.cash_per_order,
+     commission_value=4, slippage=2)
+
+fastMALen = input(title="Fast MA Length", type=integer, defval=150)
+medMALen  = input(title="Medium MA Length", type=integer, defval=250)
+slowMALen = input(title="Slow MA Length", type=integer, defval=350)
+
+endMonth = input(title="End Month Backtest", type=integer, defval=9)
+endYear  = input(title="End Year Backtest", type=integer, defval=2018)
+
+usePosSize = input(title="Use Position Sizing?", type=bool, defval=true)
+riskPerc   = input(title="Risk %", type=float, defval=0.5, step=0.25)
+
+// 2. Calculate strategy values
+fastMA = sma(close, fastMALen)
+medMA  = sma(close, medMALen)
+slowMA = sma(close, slowMALen)
+
+riskEquity  = (riskPerc / 100) * strategy.equity
+atrCurrency = (atr(20) * syminfo.pointvalue)
+posSize     = usePosSize ? floor(riskEquity / atrCurrency) : 1
+
+tradeWindow = (time <= timestamp(endYear, endMonth, 1, 0, 0))
+
+// 3. Determine long trading conditions
+enterLong = crossover(fastMA, medMA) and
+     (fastMA > slowMA) and (medMA > slowMA) and
+     tradeWindow
+
+exitLong = crossunder(fastMA, medMA)
+
+// 4. Code short trading conditions
+enterShort = crossunder(fastMA, medMA) and
+     (fastMA < slowMA) and (medMA < slowMA) and
+     tradeWindow
+
+exitShort = crossover(fastMA, medMA)
+
+// 5. Output strategy data
+plot(series=fastMA, color=teal, title="Fast MA")
+plot(series=medMA, color=orange, title="Medium MA")
+plot(series=slowMA, color=navy, title="Slow MA",
+     linewidth=2)
+
+bgColour =
+     enterLong and (strategy.position_size < 1) ? green :
+     enterShort and (strategy.position_size > -1) ? red :
+     exitLong and (strategy.position_size > 0) ? navy :
+     exitShort and (strategy.position_size < 0) ? orange :
+     na
+
+bgcolor(color=bgColour, transp=85)
+
+// 6. Submit entry orders
+if (enterLong)
+    strategy.entry(id="EL", long=true, qty=posSize)
+
+if (enterShort)
+    strategy.entry(id="ES", long=false, qty=posSize)
+
+// 7. Submit exit orders
+strategy.close_all(when=exitLong and
+     (strategy.position_size > 0))
+strategy.close_all(when=exitShort and
+     (strategy.position_size < 0))
+
+strategy.close_all(when=not tradeWindow)
