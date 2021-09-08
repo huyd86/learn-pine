@@ -1,0 +1,170 @@
+// Source: https://kodify.net/tradingview/strategies/sma-crossover-pyramiding/
+// Program the SMA Crossover Pyramiding trading strategy in TradingView Pine
+
+//=== Trading rules of the SMA Crossover Pyramiding strategy
+
+Enter long:
+Go long (and exit any open short positions) with a market order the next day at the open when the 50-period Simple Moving Average (SMA) crosses over the 100-period SMA.
+Enter one additional long position the next day with a market order when prices increase 1% from the entry price.
+Exit long:
+Close the entire long position based on the following stop loss: entry price - 4 times the 10-bar Average True Range (ATR).
+Enter short:
+Go short (and close any open longs) with a market order the next day at the open when the 50-bar SMA crosses under the 100-bar SMA.
+Enter one additional short position the next day with a market order when prices decrease with 1% from the entry price.
+Exit short:
+Close the entire short position with the following stop loss: entry price + 4 times the 10-bar Average True Range (ATR).
+Position sizing:
+The initial risk for each position (difference between entry price and stop-loss price) is 2% of equity.
+The maximum exposure (that is, the margin to equity ratio) for a single position is 10% of equity.
+
+//=== Full code: the SMA Crossover Pyramiding strategy for TradingView
+
+//@version=3
+
+// Step 1) Define strategy settings
+strategy(title="SMA Crossover Pyramiding", overlay=true,
+     pyramiding=0, initial_capital=100000,
+     commission_type=strategy.commission.cash_per_order,
+     commission_value=4, slippage=2)
+
+// Moving average inputs
+fastLen = input(title="Fast SMA Length", type=integer, defval=50)
+slowLen = input(title="Slow SMA Length", type=integer, defval=100)
+
+// Stop loss inputs
+atrLen = input(title="ATR Length", type=integer, defval=10)
+
+longStpMult  = input(title="Long Stop Multiple", type=float, defval=4)
+shortStpMult = input(title="Short Stop Multiple", type=float, defval=4)
+
+// Position sizing inputs
+usePosSize = input(title="Use Position Sizing?", type=bool,
+     defval=true)
+maxRisk = input(title="Max Position Risk %", type=float,
+     defval=2) * 0.01
+maxExposure = input(title="Max Position Exposure %", type=float,
+     defval=10) * 0.01
+marginPerc = input(title="Margin %", type=integer, defval=10) * 0.01
+
+// Pyramiding settings
+longThres  = input(title="Scale Long Profit %", type=float, defval=1)
+shortThres = input(title="Scale Short Profit %", type=float, defval=1)
+
+maxLongEntries  = input(title="Max Long Entries", type=integer, defval=2)
+maxShortEntries = input(title="Max Short Entries", type=integer, defval=2)
+
+// Backtest time range settings
+endMonth = input(title="End Month Backtest", type=integer,
+     defval=11, minval=1, maxval=12)
+endYear = input(title="End Year Backtest", type=integer,
+     defval=2018, minval=1950, maxval=2030)
+
+// Step 2) Calculate strategy values
+// Calculate moving averages and ATR
+fastMA = sma(close, fastLen)
+slowMA = sma(close, slowLen)
+
+atrValue = atr(atrLen)
+
+// Determine backtest window
+tradeWindow = time <= timestamp(endYear, endMonth, 1, 0, 0)
+
+// Determine position size
+riskEquity = maxRisk * strategy.equity
+riskLong   = (longStpMult * atrValue) * syminfo.pointvalue
+riskShort  = (shortStpMult * atrValue) * syminfo.pointvalue
+
+maxPos = floor((maxExposure * strategy.equity) /
+     (marginPerc * close * syminfo.pointvalue))
+
+posSizeLong  = usePosSize ? min(floor(riskEquity / riskLong), maxPos) : 1
+posSizeShort = usePosSize ? min(floor(riskEquity / riskShort), maxPos) : 1
+
+// Compute trade profits (is NaN when flat)
+tradeProfit = ((close - strategy.position_avg_price) /
+     strategy.position_avg_price) * 100
+
+// Calculate the number of entries into positions
+longEntries = 0
+longEntries :=
+     (strategy.position_size < 1) ? 0 :
+     (strategy.position_size > strategy.position_size[1]) ? longEntries[1] + 1 :
+     longEntries[1]
+
+shortEntries = 0
+shortEntries :=
+     (strategy.position_size > -1) ? 0 :
+     (strategy.position_size < strategy.position_size[1]) ? shortEntries[1] + 1 :
+     shortEntries[1]
+
+// Step 3) Determine long trading conditions
+enterLong = crossover(fastMA, slowMA) and
+     (strategy.position_size < 1) and
+     tradeWindow
+
+extraLong = (strategy.position_size > 0) and
+     (longEntries < maxLongEntries) and
+     (tradeProfit / longEntries > longThres) and
+     tradeWindow
+
+// Calculate long stop and update stop price
+// when there's a long or additional long signal
+longStop = 0.0
+longStop := enterLong or extraLong ?
+     close - (atrValue * longStpMult) :
+     longStop[1]
+
+// Step 4) Code short trading conditions
+enterShort = crossunder(fastMA, slowMA) and
+     (strategy.position_size > -1) and
+     tradeWindow
+
+extraShort = (strategy.position_size < 0) and
+     (shortEntries < maxShortEntries) and
+     (tradeProfit / shortEntries < shortThres * -1) and
+     tradeWindow
+
+// Calculate short stop and update stop price
+// when there's a short or additional short signal
+shortStop = 0.0
+shortStop := enterShort or extraShort ?
+     close + (atrValue * shortStpMult) :
+     shortStop[1]
+
+// Step 5) Output strategy data
+// Show moving averages on the chart
+plot(series=fastMA, color=orange, title="Fast SMA")
+plot(series=slowMA, color=teal, title="Slow SMA",
+     linewidth=2)
+
+// Plot stop levels
+plot(series=strategy.position_size > 0 ? longStop : na,
+     color=green, style=cross, linewidth=2,
+     title="Long Stop Price")
+plot(series=strategy.position_size < 0 ? shortStop : na,
+     color=red, style=cross, linewidth=2,
+     title="Short Stop Price")
+
+// Step 6) Submit entry orders
+// Send the strategy's initial entry orders
+if (enterLong)
+    strategy.entry(id="EL", long=true, qty=posSizeLong)
+
+if (enterShort)
+    strategy.entry(id="ES", long=false, qty=posSizeShort)
+
+// Send the additional entry orders
+if (extraLong)
+    strategy.order(id="EL Extra", long=true, qty=posSizeLong)
+
+if (extraShort)
+    strategy.order(id="ES Extra", long=false, qty=posSizeShort)
+
+// Step 7) Submit exit orders
+if (strategy.position_size > 0)
+    strategy.exit(id="XL", stop=longStop, qty=strategy.position_size)
+
+if (strategy.position_size < 0)
+    strategy.exit(id="XS", stop=shortStop, qty=abs(strategy.position_size))
+
+strategy.close_all(when=not tradeWindow)
