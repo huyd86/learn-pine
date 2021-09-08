@@ -1,0 +1,106 @@
+// Source: https://kodify.net/tradingview/strategies/sma-weekly-crossover/
+// The SMA Weekly Crossover trading strategy programmed for TradingView Pine
+
+//=== Trading rules for the SMA Crossover Weekly strategy
+
+Enter long:
+Go long (and exit any short position) the next day with a market order at the open when the 10-week Simple Moving Average (SMA) crosses over the 20-week SMA.
+Exit long:
+The stop loss for long positions is: entry price - 4 times the 10-week Average True Range (ATR).
+Enter short:
+Go short (and close any long position) the next day with a market order at the open when the 10-week SMA crosses under the 20-week SMA.
+Exit short:
+The stop loss for short positions is: entry price + 4 times the 10-week ATR.
+Position sizing:
+The initial risk for each position (difference between entry price and stop-loss price) is 3% of equity.
+The maximum exposure (that is, the margin to equity ratio) for a single position is 10% of equity.
+
+//=== Full code: the SMA Crossover Weekly strategy for TradingView
+
+//@version=3
+
+// Step 1) Define strategy settings
+strategy(title="SMA Crossover Weekly", overlay=true,
+     pyramiding=0, initial_capital=100000,
+     commission_type=strategy.commission.cash_per_order,
+     commission_value=4, slippage=2)
+
+// SMA inputs
+fastMALen = input(title="Fast SMA Length", type=integer, defval=10)
+slowMALen = input(title="Slow SMA Length", type=integer, defval=20)
+
+// Stop loss inputs
+atrLen = input(title="ATR Length", type=integer, defval=10)
+stopOffset = input(title="Stop Offset Multiple", type=float,
+     defval=4, step=.25)
+
+// Position sizing inputs
+usePosSize = input(title="Use Position Sizing?", type=bool,
+     defval=true)
+maxRisk = input(title="Max Position Risk %", type=float,
+     defval=3, step=.25)
+maxExposure = input(title="Max Position Exposure %", type=float,
+     defval=10, step=1)
+marginPerc = input(title="Margin %", type=integer, defval=10)
+
+// Time range inputs
+endMonth = input(title="End Month", type=integer, defval=10,
+     minval=1, maxval=12)
+endYear  = input(title="End Year", type=integer, defval=2018,
+     minval=1990, maxval=2025)
+
+// Step 2) Calculate strategy values
+fastMA = sma(close, fastMALen)
+slowMA = sma(close, slowMALen)
+
+atrValue = atr(atrLen)
+
+tradeWindow = (time <= timestamp(endYear, endMonth, 1, 0, 0))
+
+// Calculate position size
+riskEquity = (maxRisk * 0.01) * strategy.equity
+riskTrade  = (atrValue * stopOffset) * syminfo.pointvalue
+
+maxPos = ((maxExposure * 0.01) * strategy.equity) /
+     ((marginPerc * 0.01) * (close * syminfo.pointvalue))
+
+posSize = usePosSize ? min(floor(riskEquity / riskTrade), maxPos) : 1
+
+// Step 3) Determine long trading conditions
+enterLong = crossover(fastMA, slowMA) and tradeWindow
+
+longStop = 0.0
+longStop := enterLong ? close - (stopOffset * atrValue) :
+     longStop[1]
+
+// Step 4) Code short trading conditions
+enterShort = crossunder(fastMA, slowMA) and tradeWindow
+
+shortStop = 0.0
+shortStop := enterShort ? close + (stopOffset * atrValue) :
+     shortStop[1]
+
+// Step 5) Output strategy data
+plot(series=fastMA, color=#87CEEB, linewidth=2, title="Fast SMA")
+plot(series=slowMA, color=#7B68EE, linewidth=3, title="Slow SMA")
+
+plot(series=strategy.position_size > 0 ? longStop : na,
+     style=linebr, color=#90EE90, linewidth=2, title="Long stop")
+plot(series=strategy.position_size < 0 ? shortStop : na,
+     style=linebr, color=#F08080, linewidth=2, title="Short stop")
+
+// Step 6) Submit entry orders
+if (enterLong)
+    strategy.entry(id="EL", long=true, qty=posSize)
+
+if (enterShort)
+    strategy.entry(id="ES", long=false, qty=posSize)
+
+// Step 7) Submit exit orders
+if (strategy.position_size > 0) and (not enterShort)
+    strategy.exit(id="XL", from_entry="EL", stop=longStop)
+
+if (strategy.position_size < 0) and (not enterLong)
+    strategy.exit(id="XS", from_entry="ES", stop=shortStop)
+
+strategy.close_all(when=not tradeWindow)
