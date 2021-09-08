@@ -1,0 +1,107 @@
+// Source: https://kodify.net/tradingview/strategies/double-donchian-channel-breakout/
+// The Double Donchian Channel Breakout strategy coded for TradingView
+
+//=== Trading rules for the Double Donchian Channel Breakout strategy
+
+Enter long:
+Go long with a stop order when prices cross the upper Donchian Channel band of 100 bars.
+Exit long:
+Close any long positions when prices drop below the lower Donchian Channel band of 40 bars.
+Enter short:
+Go short with a stop order when prices cross the lower Donchian Channel band of 100 bars.
+Exit short:
+Close short positions when prices rise above the upper Donchian Channel band of 40 bars.
+Position sizing:
+The initial risk of each position (difference between entry price and 40-bar Donchian Channel) is 2% of equity.
+The maximum exposure (that is, the margin to equity ratio) for a single position is 10% of equity.
+
+//=== Full code: the Double Donchian Channel Breakout strategy for TradingView
+
+//@version=3
+
+// Step 1) Define strategy settings
+strategy(title="Double Donchian Channel Breakout", overlay=true,
+     pyramiding=0, initial_capital=100000,
+     commission_type=strategy.commission.cash_per_order,
+     commission_value=4, slippage=2)
+
+// Donchian Channel inputs
+fastLen = input(title="Short Donchian Channel Length",
+     type=integer, defval=40)
+slowLen = input(title="Long Donchian Channel Length",
+     type=integer, defval=100)
+
+// Position sizing inputs
+usePosSize = input(title="Use Position Sizing?", type=bool,
+     defval=true)
+
+maxRisk = input(title="Max Position Risk %", type=float,
+     defval=2, step=.25, minval=0.25, maxval=15) * 0.01
+maxExposure = input(title="Max Position Exposure %", type=float,
+     defval=10, step=1, minval=1, maxval=100) * 0.01
+
+marginPerc = input(title="Margin %", type=integer, defval=10,
+     minval=1, maxval=100) * 0.01
+
+// Step 2) Calculate strategy values
+// Calculate the Donchian Channel values
+ubSlow = highest(high, slowLen)[1]
+lbSlow = lowest(low, slowLen)[1]
+
+ubFast = highest(high, fastLen)[1]
+lbFast = lowest(low, fastLen)[1]
+
+// Calculate position size
+riskEquity = maxRisk * strategy.equity
+riskLong   = (close - lbFast) * syminfo.pointvalue
+riskShort  = (ubFast - close) * syminfo.pointvalue
+
+maxPos = floor((maxExposure * strategy.equity) /
+     (marginPerc * (close * syminfo.pointvalue)))
+
+longPosSize  = usePosSize ? min(floor(riskEquity / riskLong), maxPos) : 1
+shortPosSize = usePosSize ? min(floor(riskEquity / riskShort), maxPos) : 1
+
+// Determine trade window
+tradeAllowed = (time <= timenow - (86400000 * 5)) and (n > slowLen)
+
+// Step 3) Output strategy data
+// Plot Donchian Channel for entries
+plot(series=ubSlow, color=green, linewidth=2,
+     title="Slow DoCh - Upperband")
+plot(series=lbSlow, color=red, linewidth=2,
+     title="Slow DoCh - Lowerband")
+
+// Plot Donchian Channel for exits
+plot(series=strategy.position_size < 0 ? ubFast : na,
+     color=teal, style=linebr, linewidth=2,
+     title="Fast DoCh - Upperband")
+plot(series=strategy.position_size > 0 ? lbFast : na,
+     color=orange, style=linebr, linewidth=2,
+     title="Fast DoCh - Lowerband")
+
+// Step 4) Determine long trading conditions
+exitLong = crossunder(close, lbFast) and
+     (strategy.position_size > 0)
+
+// Step 5) Code short trading conditions
+exitShort = crossover(close, ubFast) and
+     (strategy.position_size < 0)
+
+// Step 6) Submit entry orders
+if (strategy.position_size == 0) and tradeAllowed
+    strategy.entry(id="EL", long=true, qty=longPosSize,
+         stop=ubSlow + syminfo.mintick,
+         oca_type=strategy.oca.cancel, oca_name="EntryOrders")
+    strategy.entry(id="ES", long=false, qty=shortPosSize,
+         stop=lbSlow - syminfo.mintick,
+         oca_type=strategy.oca.cancel, oca_name="EntryOrders")
+
+// Step 7) Submit exit orders
+if (exitLong)
+    strategy.order(id="XL", long=false, qty=strategy.position_size)
+
+if (exitShort)
+    strategy.order(id="XS", long=true, qty=abs(strategy.position_size))
+
+strategy.close_all(when=not tradeAllowed)
