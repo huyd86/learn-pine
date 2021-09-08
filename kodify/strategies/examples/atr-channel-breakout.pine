@@ -1,0 +1,62 @@
+// Source: https://kodify.net/tradingview/strategies/atr-channel-breakout/
+// The ATR Channel breakout strategy coded for TradingView
+
+//=== Trend following with the ATR Channel breakout strategy for TradingView
+
+//=== Trading rules of the ATR Channel breakout strategy
+
+The ATR Channel breakout strategy has the following trading rules (Faith, 2007):
+
+Enter long rules:
+Open a long position when the close is above the top of the channel, which is computed as follows: 350-day moving average + 7 x the 20-bar Average True Range (ATR).
+Exit long rules:
+Close the long position when prices cross below the 350-day moving average.
+Enter short rules:
+Open a short position when the close is below the bottom of the channel, computed as follows: 350-day moving average - 3 x ATR.
+Exit short rules:
+Cover the short position when prices cross above the 350-day moving average.
+Position sizing:
+For long and short positions, determine the position size by dividing 0.5% of equity by the value of the market’s 20-bar Average True Range (ATR) in terms of dollars.
+
+//=== Programming the ATR Channel breakout trading strategy for TradingView
+
+//@version=3
+// 1. Define strategy settings
+
+
+// 2. Calculate strategy values
+
+
+// 3. Output strategy data
+
+
+// 4. Determine long trading conditions
+
+
+// 5. Code short trading conditions
+
+
+// 6. Submit entry orders
+
+
+// 7. Submit exit orders
+
+//====== Step 1: Define strategy settings and input options
+
+//@version=3
+// 1. Define strategy settings
+strategy(title="ATR Channel Breakout", overlay=true,
+     pyramiding=0, initial_capital=100000,
+     commission_type=strategy.commission.cash_per_order,
+     commission_value=4, slippage=2)
+
+smaLength = input(title="SMA Length", type=integer, defval=350)
+atrLength = input(title="ATR Length", type=integer, defval=20)
+
+ubOffset = input(title="Upperband Offset", type=float, defval=7, step=0.50)
+lbOffset = input(title="Lowerband Offset", type=float, defval=3, step=0.50)
+
+usePosSize = input(title="Use Position Sizing?", type=bool, defval=true)
+riskPerc   = input(title="Risk %", type=float, defval=0.5, step=0.25)
+
+
