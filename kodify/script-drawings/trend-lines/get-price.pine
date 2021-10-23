@@ -1,0 +1,45 @@
+// Source: https://kodify.net/tradingview/lines/get-price/#top
+// How to get the price coordinates from a TradingView trend line?
+
+//@version=4
+strategy(title="Track entry price with trend line", overlay=true)
+
+// Calculate strategy values
+maValue = ema(close, 20)
+
+// Set trade entry conditions
+enterLong  = crossover(close, maValue)
+enterShort = crossunder(close, maValue)
+
+// Submit entry orders
+if (enterLong)
+    strategy.entry(id="EL", long=true)
+
+if (enterShort)
+    strategy.entry(id="ES", long=false)
+
+var line entryLine = na
+
+// Figure out change in strategy position
+wentLong  = (strategy.position_size > 0) and (strategy.position_size[1] <= 0)
+wentShort = (strategy.position_size < 0) and (strategy.position_size[1] >= 0)
+
+// Make a new line when strategy opened a position
+if (wentLong or wentShort)
+    entryLine := line.new(x1=bar_index[1], y1=strategy.position_avg_price,
+         x2=bar_index, y2=strategy.position_avg_price, width=5)
+
+    if (wentLong)
+        line.set_color(id=entryLine, color=color.navy)
+    else
+        line.set_color(id=entryLine, color=color.fuchsia)
+
+// For as long as the strategy has an open trade, manage
+// the line's style and length
+if (strategy.position_size != 0)
+    if (close > line.get_y2(id=entryLine))
+        line.set_style(id=entryLine, style=line.style_solid)
+    else
+        line.set_style(id=entryLine, style=line.style_dotted)
+
+    line.set_x2(id=entryLine, x=bar_index)
