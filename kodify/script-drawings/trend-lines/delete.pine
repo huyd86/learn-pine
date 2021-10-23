@@ -1,0 +1,15 @@
+// Source: https://kodify.net/tradingview/lines/delete/
+// How to remove TradingView trend lines with code?
+
+//@version=4
+study(title="Previous close line", overlay=true)
+
+// Look for bar that opened at 17:00
+if (hour == 17 and minute == 0)
+    // Make a trend line
+    closeLine = line.new(x1=bar_index[1], y1=close[1],
+         x2=bar_index, y2=close[1], extend=extend.both,
+         color=color.orange, width=2)
+
+    // Remove the previous line
+    line.delete(id=closeLine[1])
