@@ -1,0 +1,47 @@
+// Source: https://kodify.net/tradingview/lines/set-time/#top
+// How to update the time coordinates of a TradingView trend line?
+
+//@version=4
+study(title="Example - trend line time coordinates", overlay=false)
+
+// Make the high and low line once
+var highLine = line.new(x1=bar_index[1], y1=close[1],
+     x2=bar_index, y2=close, color=color.green,
+     width=2, extend=extend.right)
+
+var lowLine = line.new(x1=bar_index[1], y1=close[1],
+     x2=bar_index, y2=close, color=color.red,
+     width=2, extend=extend.right)
+
+// Calculate Relative Strength Index (RSI)
+rsiValue = rsi(close, 12)
+
+// Find periods of price consolidation
+priceConsol = (high < highest(high, 10)[1]) and
+     (low > lowest(low, 10)[1])
+
+// When a new price consolidation happened, move
+// the trend line to that location
+if (priceConsol and not priceConsol[1])
+    // Get recent extremes in the RSI
+    rsiHigh = highest(rsiValue, 10)[1]
+    rsiLow  = lowest(rsiValue, 10)[1]
+
+    // Change the line's price coordinates
+    line.set_y1(id=highLine, y=rsiHigh)
+    line.set_y2(id=highLine, y=rsiHigh)
+
+    line.set_y1(id=lowLine, y=rsiLow)
+    line.set_y2(id=lowLine, y=rsiLow)
+
+    // Update the line's price coordinates
+    line.set_x1(id=highLine, x=bar_index[1])
+    line.set_x2(id=highLine, x=bar_index)
+
+    line.set_x1(id=lowLine, x=bar_index[1])
+    line.set_x2(id=lowLine, x=bar_index)
+
+// Plot the RSI and its overbought and oversold levels
+plot(series=rsiValue, title="RSI")
+hline(price=25)
+hline(price=75)
