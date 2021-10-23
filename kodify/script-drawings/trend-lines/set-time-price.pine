@@ -1,0 +1,27 @@
+// Source: https://kodify.net/tradingview/lines/set-time-price/#top
+// How to update the price and time coordinates of a TradingView trend line?
+
+//@version=4
+study(title="Double top and bottom trend lines", overlay=true)
+
+// Make the trend lines once
+var topLine = line.new(x1=na, y1=na, x2=na, y2=na,
+     color=color.green, width=3, extend=extend.both)
+
+var bottomLine = line.new(x1=na, y1=na, x2=na, y2=na,
+     color=color.red, width=3, extend=extend.both)
+
+// Spot double tops and bottoms
+doubleTop = (high == high[1]) and (high == highest(high, 20))
+
+doubleBottom = (low == low[1]) and (low == lowest(low, 20))
+
+// Update top line to location recent double top
+if (doubleTop)
+    line.set_xy1(id=topLine, x=bar_index[1], y=high)
+    line.set_xy2(id=topLine, x=bar_index, y=high)
+
+// Move bottom line to area of recent double bottom
+if (doubleBottom)
+    line.set_xy1(id=bottomLine, x=bar_index[1], y=low)
+    line.set_xy2(id=bottomLine, x=bar_index, y=low)
