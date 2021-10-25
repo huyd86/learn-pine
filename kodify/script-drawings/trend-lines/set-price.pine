@@ -18,12 +18,12 @@ consolidate = (volume < volume[1]) and
 
 var insideRange = false
 
+hiHighs = highest(high, 10)[1]
+loLows  = lowest(low, 10)[1]
+
 // When there's a price consolidation, update the
 // line to capture the 10-bar price range
 if (consolidate)
-    hiHighs = highest(high, 10)[1]
-    loLows  = lowest(low, 10)[1]
-
     // Change coordinates high line
     line.set_y2(id=highLine, y=hiHighs)
     line.set_y1(id=highLine, y=hiHighs)
@@ -53,4 +53,3 @@ insideRange := insideRange and (close > lowPrice)
 if (insideRange[1])
     line.set_x2(id=highLine, x=bar_index)
     line.set_x2(id=lowLine, x=bar_index)
-    
