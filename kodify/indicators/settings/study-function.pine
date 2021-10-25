@@ -1,0 +1,16 @@
+// Source: https://kodify.net/tradingview/indicator-settings/study-function/
+// How to set indicator properties programmatically in TradingView?
+
+study(title="Smoothed extreme prices", overlay=true, precision=4)
+
+// Inputs
+extremeLen = input(title="Extremes Lookback", type=integer, defval=20)
+smoothLen  = input(title="Smoothing Length", type=integer, defval=5)
+
+// Compute values
+highestHigh = ema(highest(high, extremeLen), smoothLen)
+lowestLow   = ema(lowest(low, extremeLen), smoothLen)
+
+// Plot values
+plot(series=highestHigh, color=green, linewidth=2)
+plot(series=lowestLow, color=red, linewidth=2)
