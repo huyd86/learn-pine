@@ -1,0 +1,90 @@
+// Source: https://kodify.net/tradingview/indicators/tema/
+// The Triple Exponential Moving Average (TEMA) indicator coded as a TradingView Pine Script
+
+//@version=3
+// Step 1. Script settings
+study(title="Triple Exponential Moving Average (TEMA)",
+     shorttitle="TEMA", overlay=true)
+
+// Input options
+// Data to calculate the TEMA(s) on
+srcData = input(title="Source Data", type=source, defval=close)
+
+// TEMA length
+temaLen1 = input(title="Length TEMA #1", type=integer, defval=20)
+temaLen2 = input(title="Length TEMA #2", type=integer,
+     defval=0, minval=0)
+
+// Visual settings
+showArrows  = input(title="Show Arrows?", type=bool, defval=true)
+colourLines = input(title="Colour Lines?", type=bool, defval=true)
+
+// Step 2. Calculate indicator values
+TEMA(series, length) =>
+    if (length > 0)
+        ema1 = ema(series, length)
+        ema2 = ema(ema1, length)
+        ema3 = ema(ema2, length)
+        (3 * ema1) - (3 * ema2) + ema3
+    else
+        na
+
+// Calculate TEMA values
+temaVal1 = TEMA(srcData, temaLen1)
+temaVal2 = TEMA(srcData, temaLen2)
+
+// Step 3. Determine indicator signals
+// Check for a bullish signal
+temaCrossover = if (temaLen2 > 0)
+    crossover(temaVal1, temaVal2)
+else
+    crossover(srcData, temaVal1)
+
+// See if TEMA triggered a bearish signal
+temaCrossunder = if (temaLen2 > 0)
+    crossunder(temaVal1, temaVal2)
+else
+    crossunder(srcData, temaVal1)
+
+// Determine the TEMA(s) trend
+// Uptrend with price (and slow average) above TEMA
+uptrend = if (temaLen2 > 0)
+    (close > temaVal1) and (temaVal1 > temaVal2)
+else
+    (close > temaVal1) and (temaVal1 > temaVal1[1])
+
+// Downtrend with price (and slow average) under TEMA
+downtrend = if (temaLen2 > 0)
+    (close < temaVal1) and (temaVal1 < temaVal2)
+else
+    (close < temaVal1) and (temaVal1 < temaVal1[1])
+
+// Step 4. Output indicator data
+// Determine line colour
+lineColour = uptrend ? green :
+     downtrend ? red :
+     yellow
+
+// Plot TEMA lines on the chart
+plot(series=temaVal1, color=colourLines ? lineColour : orange,
+     linewidth=2, title="TEMA #1")
+plot(series=temaVal2, color=colourLines ? lineColour : teal,
+     linewidth=2, title="TEMA #2")
+
+// Highlight TEMA signals with up/down arrows
+plotshape(series=showArrows and temaCrossover,
+     style=shape.arrowup, location=location.belowbar,
+     size=size.normal, color=green)
+
+plotshape(series=showArrows and temaCrossunder,
+     style=shape.arrowdown, location=location.abovebar,
+     size=size.normal, color=red)
+
+// Step 5. Create indicator alerts
+alertcondition(condition=temaCrossover,
+     title="Crossover",
+     message="Close (or fast TEMA) crossed over TEMA")
+
+alertcondition(condition=temaCrossunder,
+     title="Crossunder",
+     message="Close (or fast TEMA) crossed under TEMA")
