@@ -1,0 +1,167 @@
+// This source code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © huysamdua86
+
+// Source: https://kodify.net/tradingview/indicators/floor-trader-pivots/
+// The Floor Trader Pivots indicator programmed as a TradingView Pine script
+
+//@version=5
+
+
+//==============================
+// Step 1. Script settings
+//==============================
+
+indicator(title='Floor Trader Pivots', overlay=true)
+
+// Input settings
+// Create a pull-down menu for the pivot type
+pivotType = input.string(title='Pivot Type', options=['Daily', 'Intraday', 'Weekly'], defval='Daily')
+
+// Make toggles for pivot level options
+plotPP = input(title='Plot PP', defval=true)
+plotS1R1 = input(title='Plot S1 and R1', defval=true)
+plotS2R2 = input(title='Plot S2 and R2', defval=true)
+plotS3R3 = input(title='Plot S3 and R3', defval=false)
+
+// Configure session options
+sessRange = input.session(title='Trading Session', defval='0800-1600')
+showSess = input(title='Highlight Session?', defval=false)
+
+// Enable or disable pivot labels
+showLabels = input(title='Show Labels?', defval=false)
+
+
+//==============================
+// Step 2. Calculate indicator values
+//==============================
+
+// Create a function to fetch daily and weekly data
+GetData(res, data) =>
+    request.security(syminfo.tickerid, res, data[1], lookahead=barmerge.lookahead_on)
+
+// Fetch daily and weekly price data
+dailyHigh = GetData('D', high)
+dailyLow = GetData('D', low)
+dailyClose = GetData('D', close)
+
+weeklyHigh = GetData('W', high)
+weeklyLow = GetData('W', low)
+weeklyClose = GetData('W', close)
+
+// Determine session pivot data
+// First see how the price bar relates to
+// the session time range
+inSession = not na(time(timeframe.period, sessRange)[1])
+sessStart = inSession and not inSession[1]
+sessEnd = not inSession and inSession[1]
+
+// Determine session price data
+sessHigh = 0.0
+sessLow = 0.0
+sessClose = 0.0
+
+sessHigh := sessStart ? high : inSession ? math.max(high, sessHigh[1]) : na
+sessLow := sessStart ? low : inSession ? math.min(low, sessLow[1]) : na
+sessClose := sessEnd ? close[1] : na
+
+// Compute high, low, close from previous intra-day session
+highPrevSess = 0.0
+lowPrevSess = 0.0
+closePrevSess = 0.0
+
+fixnan_1 = fixnan(sessHigh)
+highPrevSess := sessEnd ? fixnan_1 : highPrevSess[1]
+fixnan_2 = fixnan(sessLow)
+lowPrevSess := sessEnd ? fixnan_2 : lowPrevSess[1]
+fixnan_3 = fixnan(sessClose)
+closePrevSess := sessEnd ? fixnan_3 : closePrevSess[1]
+
+// Now figure out which kind of price data
+// to use for the pivot calculation
+theHigh = if pivotType == 'Daily'
+    dailyHigh
+else
+    if pivotType == 'Intraday'
+        highPrevSess
+    else
+        weeklyHigh
+
+theLow = if pivotType == 'Daily'
+    dailyLow
+else
+    if pivotType == 'Intraday'
+        lowPrevSess
+    else
+        weeklyLow
+
+theClose = if pivotType == 'Daily'
+    dailyClose
+else
+    if pivotType == 'Intraday'
+        closePrevSess
+    else
+        weeklyClose
+
+// Finally calculate the pivot levels
+pp = (theHigh + theLow + theClose) / 3
+
+r1 = pp * 2 - theLow
+s1 = pp * 2 - theHigh
+r2 = pp - s1 + r1
+s2 = pp - (r1 - s1)
+r3 = pp - s1 + r2
+s3 = pp - (r2 - s1)
+
+
+//==============================
+// Step 3. Output indicator data
+//==============================
+
+// Plot the various pivot levels
+plot(series=plotS3R3 ? r3 : na, title='R3', style=plot.style_circles, linewidth=2, color=color.new(color.fuchsia, 0))
+plot(series=plotS2R2 ? r2 : na, title='R2', style=plot.style_circles, linewidth=2, color=color.new(#1E90FF, 0))
+plot(series=plotS1R1 ? r1 : na, title='R1', style=plot.style_circles, linewidth=2, color=color.new(#EEC900, 0))
+
+plot(series=plotPP ? pp : na, title='PP', style=plot.style_circles, linewidth=2, color=color.new(#48D1CC, 0))
+
+plot(series=plotS1R1 ? s1 : na, title='S1', style=plot.style_circles, linewidth=2, color=color.new(#EEC900, 0))
+plot(series=plotS2R2 ? s2 : na, title='S2', style=plot.style_circles, linewidth=2, color=color.new(#1E90FF, 0))
+plot(series=plotS3R3 ? s3 : na, title='S3', style=plot.style_circles, linewidth=2, color=color.new(color.fuchsia, 0))
+
+// Display the pivot names on the chart, if applicable
+newPivots = showLabels == false ? false : pivotType == 'Intraday' ? sessEnd : pivotType == 'Daily' ? dayofmonth != dayofmonth[1] : dayofweek == dayofweek.monday and dayofmonth != dayofmonth[1]
+
+plotchar(series=newPivots and plotS3R3 ? r3 : na, char='', text='R3', offset=1, location=location.absolute, color=color.new(color.fuchsia, 0), title='R3 label')
+
+plotchar(series=newPivots and plotS2R2 ? r2 : na, char='', text='R2', offset=1, location=location.absolute, color=color.new(#1E90FF, 0), title='R2 label')
+
+plotchar(series=newPivots and plotS1R1 ? r1 : na, char='', text='R1', offset=1, location=location.absolute, color=color.new(#EEC900, 0), title='R1 label')
+
+plotchar(series=newPivots and plotS1R1 ? s1 : na, char='', text='S1', offset=1, location=location.absolute, color=color.new(#EEC900, 0), title='S1 label')
+
+plotchar(series=newPivots and plotS2R2 ? s2 : na, char='', text='S2', offset=1, location=location.absolute, color=color.new(#1E90FF, 0), title='S2 label')
+
+plotchar(series=newPivots and plotS3R3 ? s3 : na, char='', text='S3', offset=1, location=location.absolute, color=color.new(color.fuchsia, 0), title='S3 label')
+
+// Highlight the intra-day price data session on the chart
+bgcolor(color=showSess and inSession and pivotType == 'Intraday' ? color.orange : na, transp=95)
+
+
+//==============================
+// Step 4. Create indicator alerts
+//==============================
+
+alertcondition(condition=ta.cross(close, s3), title='Pivot S3 Cross', message='Prices crossed Pivot S3 level')
+
+alertcondition(condition=ta.cross(close, s2), title='Pivot S2 Cross', message='Prices crossed Pivot S2 level')
+
+alertcondition(condition=ta.cross(close, s1), title='Pivot S1 Cross', message='Prices crossed Pivot S1 level')
+
+alertcondition(condition=ta.cross(close, pp), title='Pivot PP Cross', message='Prices crossed the main Pivot Point level')
+
+alertcondition(condition=ta.cross(close, r1), title='Pivot R1 Cross', message='Prices crossed Pivot R1 level')
+
+alertcondition(condition=ta.cross(close, r2), title='Pivot R2 Cross', message='Prices crossed Pivot R2 level')
+
+alertcondition(condition=ta.cross(close, r3), title='Pivot R3 Cross', message='Prices crossed Pivot R3 level')
+
