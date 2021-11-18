@@ -1,0 +1,38 @@
+// Source: https://kodify.net/tradingview/operators/function-declaration-operator/
+// Creating functions with TradingView’s function declaration operator
+
+// Creating a single-line function in TradingView Pine
+FunctionName(comma-separated list of arguments) => expression
+
+// Calculating the EMA momentum with a single-line function
+study(title="Function declaration operator - 1")
+
+momEMA(length, barsBack) => ema(close, length) - ema(close, length)[barsBack]
+
+plot(series=momEMA(20, 10), color=blue, style=histogram, linewidth=3)
+plot(series=momEMA(40, 10), color=red, style=histogram, linewidth=3)
+
+hline(price=0, color=gray, linestyle=solid)
+
+// Creating a multi-line function in TradingView Pine
+FunctionName(comma-separated list of arguments) =>
+    statement
+    statement
+    ... etc
+    expression, variable, or variable declaration
+    
+// A multi-line function that checks if prices cross above an EMA
+study(title="Function declaration operator - 2", overlay=true)
+
+CrossAbove(price, length) =>
+     emaValue = ema(price, length)
+     above = (price > emaValue and price[1] < emaValue[1])
+     above
+
+plotshape(series=CrossAbove(close, 10),
+     style=shape.flag, location=location.abovebar, color=red)
+plotshape(series=CrossAbove(high, 30),
+     style=shape.flag, location=location.belowbar, color=blue)
+
+plot(series=ema(close, 10), color=red)
+plot(series=ema(high, 30), color=blue)
