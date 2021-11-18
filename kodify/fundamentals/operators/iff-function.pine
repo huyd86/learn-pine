@@ -1,0 +1,23 @@
+// Source: https://kodify.net/tradingview/operators/iff-function/
+// The iff() function: an alternative to the conditional operator
+
+//==============================
+//===== basic iff example ======
+//==============================
+study(title="iff() basic example", overlay=true)
+emaValues = ema(close, 10)
+plotColour = iff(close > emaValues,      // if
+     green,                              // then
+     red)                                // else
+plot(series=emaValues, linewidth=4, color=plotColour)
+
+//==============================
+//===== nested iff =============
+//==============================
+study(title="Momentum with iff()")
+horizLine = iff(isweekly, 0,
+     iff(isdaily, -10,
+     iff(isintraday, -20,
+     5)))
+plot(series=mom(close, 20), color=blue)
+plot(series=horizLine, color=gray)
