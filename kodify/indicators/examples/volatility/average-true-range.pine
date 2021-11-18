@@ -1,6 +1,115 @@
+// This source code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © huysamdua86
+
 // Source: https://kodify.net/tradingview/indicators/average-true-range/
 // The Average True Range (ATR) indicator coded for TradingView Pine
 
+//@version=5
+
+//==============================
+// Step 1. Script settings
+//==============================
+
+indicator(title='Average True Range', shorttitle='ATR', overlay=false)
+
+// ATR input options
+atrType = input.string(title='ATR Type', defval='Regular', options=['Regular', 'Percentage', 'Ticks', 'Currency'])
+
+atrLen = input(title='ATR Length', defval=14)
+atrSmooth = input.string(title='Smoothing Type', defval='RMA', options=['EMA', 'RMA', 'SMA', 'WMA'])
+
+posSize = input(title='Position Size (For Currency ATR)', defval=1)
+
+// To disable the ATR's moving average, set its length to 1
+maLength = input.int(title='MA Length', defval=21, minval=1)
+colourMA = input(title='Colour MA Line?', defval=true)
+
+highlight = input(title='Highlight ATR Signals?', defval=false)
 
 
+//==============================
+// Step 2. Calculate indicator values
+//==============================
 
+// Custom function that calculates the Average True Range
+// based on the smoothing type set by the input option
+AvgTrueRange() =>
+    if atrSmooth == 'EMA'
+        ta.ema(ta.tr, atrLen)
+    else
+        if atrSmooth == 'RMA'
+            ta.rma(ta.tr, atrLen)
+        else
+            if atrSmooth == 'SMA'
+                ta.sma(ta.tr, atrLen)
+            else
+                ta.wma(ta.tr, atrLen)
+
+// Calculate the Average True Range value
+// based on the 'ATR Type' input option
+atrValue = if atrType == 'Regular'
+    AvgTrueRange()
+else
+    if atrType == 'Percentage'
+        AvgTrueRange() / close * 100
+    else
+        if atrType == 'Ticks'
+            AvgTrueRange() / syminfo.mintick
+        else
+            // Calculate ATR currency with two decimals
+            math.round(AvgTrueRange() * syminfo.pointvalue * posSize * 100) / 100
+
+// Calculate ATR moving average, provided input length is > 1
+ema_1 = ta.ema(atrValue, maLength)
+atrMA = maLength > 1 ? ema_1 : na
+
+
+//==============================
+// Step 3. Determine indicator signals
+//==============================
+
+risingMA = atrMA > atrMA[1] and atrMA[1] > atrMA[2]
+fallingMA = atrMA < atrMA[1] and atrMA[1] < atrMA[2]
+
+atrCrossover = ta.crossover(atrValue, atrMA)
+atrCrossunder = ta.crossunder(atrValue, atrMA)
+
+highAtr = atrValue > ta.highest(atrValue, 20)[1]
+lowAtr = atrValue < ta.lowest(atrValue, 20)[1]
+
+
+//==============================
+// Step 4. Output indicator data
+//==============================
+
+plot(series=atrValue, color=color.new(color.orange, 0), title='ATR')
+
+// Show ATR moving average
+maColour = not colourMA ? color.teal : risingMA ? color.green : fallingMA ? color.red : color.teal
+
+plot(series=atrMA, color=maColour, title='ATR EMA')
+
+// Highlight ATR signals
+bgColour = atrCrossover or atrCrossunder ? color.orange : highAtr ? color.red : lowAtr ? color.green : na
+
+bgcolor(color=highlight ? bgColour : na, transp=90)
+
+
+//==============================
+// Step 5. Create indicator alerts
+//==============================
+
+// Alerts based on the ATR's EMA
+alertcondition(condition=risingMA, title='Rising ATR', message='The Average True Range\'s average increased 2 bars in a row')
+
+alertcondition(condition=fallingMA, title='Declining ATR', message='The Average True Range\'s average decreased 2 bars in a row')
+
+// Alerts for when the ATR crosses its average
+alertcondition(condition=atrCrossover, title='ATR Crossover', message='The Average True Range crossed above its EMA')
+
+alertcondition(condition=atrCrossunder, title='ATR Crossunder', message='The Average True Range crossed under its EMA')
+
+// Alerts for when the ATR reaches a recent high or low
+alertcondition(condition=highAtr, title='ATR New High', message='The Average True Range crossed its 20-bar high')
+
+alertcondition(condition=lowAtr, title='ATR New Low', message='The Average True Range crossed its 20-bar low')
