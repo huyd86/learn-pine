@@ -1,0 +1,33 @@
+
+//==============================
+// TradingView example of the logical and & or operators
+//==============================
+//@version=5
+indicator(title='Logical operators - 1', overlay=true)
+
+emaPeriod = timeframe.isdaily or timeframe.isweekly ? 30 : 50
+
+emaValues = ta.ema(close, emaPeriod)
+
+emaColour = close > emaValues and close[1] > emaValues[1] ? color.green : close < emaValues and close[1] < emaValues[1] ? color.red : color.blue
+
+plot(series=emaValues, color=emaColour, linewidth=2)
+//==============================
+
+//==============================
+// The not operator in TradingView: evaluating to the logical opposite
+//==============================
+//@version=5
+indicator(title='Logical operators - 2', overlay=true)
+
+gapUp = low > high[1]
+gapDown = high < low[1]
+
+backgroundColour = gapUp == true ? color.green : gapDown == true ? color.red : na
+
+bgcolor(color=backgroundColour, transp=60)
+
+noGap = not(gapUp or gapDown)
+
+plotshape(series=noGap, style=shape.xcross, location=location.abovebar)
+//==============================
