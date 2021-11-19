@@ -1,0 +1,28 @@
+// The conditional ternary operator in TradingView Pine explained
+condition ? result1 : result2
+
+// Setting a variable’s value with the conditional operator
+barColour = (close > open) ? blue : red
+
+//@version=5
+indicator(title='Conditional operator - example 1', overlay=true)
+background = volume > volume[1] ? color.green : color.yellow
+bgcolor(color=background, transp=85)
+
+//==============================
+// Nesting conditional ternary operators in TradingView
+//==============================
+//@version=5
+indicator(title='Conditional operator - example 2', overlay=true)
+
+height = input(title='Arrow height', defval=20)
+
+arrowPlot =
+     (close > close[1] and close[1] > close[2]) ? 1 :
+     (high > high[1] and high[1] > high[2]) ? 1 :
+     (close < close[1] and close[1] < close[2]) ? -1 :
+     (low < low[1] and low[1] < low[2]) ? -1 :
+     na
+
+plotarrow(series=arrowPlot, colordown=color.new(color.red, 35), colorup=color.new(color.lime, 35), maxheight=height, minheight=height)
+//==============================
