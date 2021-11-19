@@ -1,0 +1,21 @@
+//==============================
+// Values returned by the history referencing operator
+//==============================
+//@version=5
+indicator(title='History referencing operator', overlay=true)
+
+plot(series=close[5], linewidth=2)
+//==============================
+
+//==============================
+// Getting the value of variables on previous bars in TradingView
+//==============================
+//@version=5
+indicator(title='History referencing operator - 1', overlay=false)
+
+priceDiff = hl2 - hl2[10]
+
+colour = priceDiff > priceDiff[1] ? color.orange : color.blue
+
+plot(series=priceDiff, color=colour, style=plot.style_histogram, linewidth=3)
+//==============================
