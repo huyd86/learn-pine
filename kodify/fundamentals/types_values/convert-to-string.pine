@@ -1,0 +1,42 @@
+//==============================
+tostring(value)
+tostring(value, format)
+//==============================
+
+//==============================
+// Examples: turn numbers into TradingView text
+//==============================
+//@version=5
+indicator(title='tostring() example indicator', overlay=true)
+
+// Make input option
+resValue = input(title='Higher time frame days', defval=1)
+
+// Get the previous days' higher time frame ('htf') high and low
+htfHigh = request.security(syminfo.tickerid, str.tostring(resValue, '#D'), high)[1]
+htfLow = request.security(syminfo.tickerid, str.tostring(resValue) + 'D', low)[1]
+
+// Plot values
+plot(series=htfHigh, color=color.new(color.green, 0), linewidth=2)
+plot(series=htfLow, color=color.new(color.red, 0), linewidth=2)
+//==============================
+
+//==============================
+// Include numbers in the strategy’s order comments
+//==============================
+//@version=5
+strategy(title='tostring() example strategy', overlay=true)
+
+// Input options
+maLenLong = input(title='MA Length Long', defval=20)
+maLenShort = input(title='MA Length Short', defval=10)
+
+// Trading conditions
+enterLong = open > high[1] and close > ta.ema(close, maLenLong)
+enterShort = open < low[1] and close < ta.ema(close, maLenShort)
+
+// Submit orders
+strategy.entry(id='long', direction=strategy.long, when=enterLong, comment='EL with MA len ' + str.tostring(maLenLong))
+
+strategy.entry(id='short', direction=strategy.short, when=enterShort, comment='ES with MA len ' + str.tostring(maLenShort))
+//==============================
