@@ -4,4 +4,9 @@
 - [Combining strings with TradingView’s addition operator](https://kodify.net/tradingview/operators/combine-strings-addition/)
 - [The modulus operator (%) in TradingView Pine](https://kodify.net/tradingview/operators/modulus-operator/)
 - [Getting historical data with the history referencing operator](https://kodify.net/tradingview/operators/history-referencing-operator/)
-- 
+- [TradingView’s conditional ternary operator explained](https://kodify.net/tradingview/operators/conditional-operator/)
+- [The iff() function: an alternative to the conditional operator](https://kodify.net/tradingview/operators/iff-function/)
+- [Comparing values for true or false with TradingView’s comparison operators](https://kodify.net/tradingview/operators/comparison-operators/)
+- [Working with logical operators in TradingView Pine](https://kodify.net/tradingview/operators/logical-operators/)
+- [Creating functions with TradingView’s function declaration operator](https://kodify.net/tradingview/operators/function-declaration-operator/)
+- [The priority of operators in TradingView Pine](https://kodify.net/tradingview/operators/order-operations-pine/)
