@@ -1,0 +1,32 @@
+//==============================
+// Round up and down to the nearest full integer with round()
+//==============================
+//@version=5
+indicator(title='Round example', overlay=true)
+
+roundSMA = math.round(ta.sma(close, 30))
+
+plot(series=roundSMA, color=color.new(color.orange, 0))
+//==============================
+
+//==============================
+// Round values down with TradingView’s floor() function
+//==============================
+//@version=5
+indicator(title='Floor example', overlay=false)
+
+posSize = math.floor(10000 / close)
+
+plot(series=posSize, color=color.new(color.orange, 0))
+//==============================
+
+//==============================
+// Round values up in TradingView with the ceil() function
+//==============================
+//@version=5
+indicator(title='Ceil example', overlay=false)
+
+volCeil = math.ceil(volume / 1000)
+
+plot(series=volCeil, color=color.new(color.orange, 0), style=plot.style_columns)
+//==============================
