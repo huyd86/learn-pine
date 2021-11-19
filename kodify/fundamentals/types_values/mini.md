@@ -1,0 +1,6 @@
+List of mini guides
+
+- [How do we make a string of text from a TradingView number?](https://kodify.net/tradingview/values/convert-to-string/)
+- [Three ways to round numbers in TradingView Pine Scripts](https://kodify.net/tradingview/values/rounding-numbers/)
+- [How to truncate numbers in TradingView’s Pine Script?](https://kodify.net/tradingview/truncate-numbers/)
+
