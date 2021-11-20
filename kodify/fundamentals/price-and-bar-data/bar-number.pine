@@ -1,0 +1,18 @@
+//==============================
+// Example: count bars and position a label with bar_index
+//==============================
+//@version=5
+indicator('Example of bar_index variable', overlay=true)
+
+// Make a new label once
+var label myLabel = label.new(x=bar_index, y=high + ta.tr, textcolor=color.white, color=color.blue)
+
+// On the last bar, show the chart's bar count
+if barstate.islast
+    // Set the label content
+    label.set_text(id=myLabel, text='Bars on\nthe chart:\n' + str.tostring(bar_index + 1))
+
+    // Update the label's location
+    label.set_x(id=myLabel, x=bar_index)
+    label.set_y(id=myLabel, y=high + ta.tr)
+//==============================
