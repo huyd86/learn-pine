@@ -1,0 +1,21 @@
+// Example: using a symbol input to plot another security
+
+//@version=5
+indicator(title='Symbol\'s close')
+
+// Add the script's inputs
+symbolName = input.symbol(title='Symbol', defval='NASDAQ:GOOG')
+
+emaLength = input.int(title='EMA Length', defval=20, minval=10)
+
+// Retrieve the other symbol's data
+symbolClose = request.security(symbolName, timeframe.period, close)
+
+symbolEma = ta.ema(symbolClose, emaLength)
+
+// Determine the EMA colour
+emaColour = symbolClose > symbolEma ? color.green : color.red
+
+// Plot both lines
+plot(series=symbolClose, color=color.new(color.orange, 0), linewidth=2)
+plot(series=symbolEma, color=emaColour, style=plot.style_cross)
