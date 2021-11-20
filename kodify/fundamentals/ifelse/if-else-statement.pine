@@ -1,0 +1,33 @@
+//==============================
+// Default pattern: if/else statement in TradingView Pine
+//==============================
+[myVariable =] if condition
+    // code that runs when 'condition' is true
+else
+    // code that executes when 'condition' is false
+//==============================
+
+//==============================
+// Example: use if/else to calculate a profit target
+//==============================
+//@version=5
+strategy(title='If/else statement example', overlay=true)
+
+// Calculate exponential moving average
+emaValue = ta.ema(close, 12)
+
+plot(series=emaValue, color=color.new(color.lime, 0), linewidth=2)
+
+// Set profit target with if/else
+priceTarget = if close > emaValue
+    emaValue * 1.10
+else
+    emaValue * 0.97
+
+// Submit orders
+if ta.crossover(close, emaValue)
+    strategy.entry(id='EL', direction=strategy.long)
+
+if strategy.position_size > 0
+    strategy.exit(id='XL', limit=priceTarget)
+//==============================
