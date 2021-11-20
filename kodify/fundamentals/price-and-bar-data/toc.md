@@ -1,0 +1,8 @@
+- [How to get the bar number in TradingView Pine? (bar_index variable)](https://kodify.net/tradingview/bar-data/bar-number/)
+- [See with code if TradingView bars closed higher, lower, or unchanged](https://kodify.net/tradingview/bar-data/close-higher-lower/)
+- [How to program red and green price bar candles in TradingView?](https://kodify.net/tradingview/bar-data/red-green-candle/)
+- [How to calculate and plot TradingView moving averages?](https://kodify.net/tradingview/bar-data/moving-averages/)
+- [How to get the highest high or lowest low in TradingView Pine?](https://kodify.net/tradingview/bar-data/highest-high-lowest-low/)
+- [How to see if a value crossed over or under another in TradingView Pine?](https://kodify.net/tradingview/bar-data/crossover-crossunder/)
+- [Does TradingView’s close always returns the bar’s closing price? (No it doesn’t!)](https://kodify.net/tradingview/bar-data/close-bar-price/)
+- [How many price bars do TradingView charts have?](https://kodify.net/tradingview/bar-data/bar-count/)
