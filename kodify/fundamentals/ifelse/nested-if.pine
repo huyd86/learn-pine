@@ -1,0 +1,21 @@
+//==============================
+// Default pattern: if inside another if statement
+//==============================
+[myVariable =] if firstCondition
+    // Code that runs when 'firstCondition' is true
+
+    if secondCondition
+        // Code that runs when both conditions are true
+//==============================
+
+//==============================
+// Default pattern: if statement inside an else code block
+//==============================
+[myVariable =] if firstCondition
+    // Code that runs when 'firstCondition' is true
+else
+    // Code that runs when 'firstCondition' is false
+
+    if secondCondition
+        // Code that runs when 'firstCondition' is false
+//==============================
