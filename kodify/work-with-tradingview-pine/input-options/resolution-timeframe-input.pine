@@ -1,0 +1,19 @@
+// Example: plotting highs and lows from another time frame
+
+//@version=5
+indicator(title='Data from another time frame', overlay=true, shorttitle='Higher time frame')
+
+// Add the inputs
+timeFrame = input.timeframe(title='Other time frame', defval='180')
+emaLength = input.int(title='EMA length', defval=21, minval=5, maxval=100)
+
+// Retrieve the higher time frame's data
+symbolHigh = request.security(syminfo.tickerid, timeFrame, high)
+symbolLow = request.security(syminfo.tickerid, timeFrame, low)
+
+emaClose = ta.ema(request.security(syminfo.tickerid, timeFrame, close), emaLength)
+
+// Plot the other time frame's data
+plot(series=symbolHigh, color=color.new(color.green, 0), linewidth=3, style=plot.style_circles)
+plot(series=symbolLow, color=color.new(color.red, 0), linewidth=3, style=plot.style_cross)
+plot(series=emaClose, color=color.new(color.orange, 0), linewidth=2)
