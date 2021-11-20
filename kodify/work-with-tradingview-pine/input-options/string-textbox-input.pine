@@ -1,0 +1,12 @@
+// Plotting another time frame’s high and low with a string input
+
+//@version=5
+indicator(title='String input - time frame\'s high and low', overlay=true)
+
+tf = input(title='Higher time frame', defval='360')
+
+tfHigh = request.security(syminfo.tickerid, tf, high)
+tfLow = request.security(syminfo.tickerid, tf, low)
+
+plot(series=tfHigh, color=color.new(color.green, 0), linewidth=2)
+plot(series=tfLow, color=color.new(color.red, 0), linewidth=2)
