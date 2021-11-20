@@ -1,0 +1,45 @@
+// See if bar closed higher
+closeHigher = (close > close[1])
+
+// Code that checks if bar closed lower
+closeLower = (close < close[1])
+
+// Check if bar closed unchanged
+closeUnchanged = (close == close[1])
+
+// Look if bar closed lower or the same
+lowerOrSameClose = (close <= close[1])
+
+// Spot if bar closed higher or the same
+higherOrSameClose = (close >= close[1])
+
+// Code to find higher or lower closes
+higherOrLowerClose = (close != close[1])
+
+//==============================
+// Spot multi-bar close patterns in TradingView
+//==============================
+
+// Two lower closes in a row
+twoLowerCloses = (close[1] < close[2]) and (close < close[1])
+
+// A higher close followed by a lower close
+lowerHigherClose = (close[1] < close[2]) and (close > close[1])
+
+// Three higher closes in a row
+upUpUpCloses = (close[2] > close[3]) and (close[1] > close[2])
+     and (close > close[1])
+
+// Two higher closes followed by a down close
+upUpDownCloses = (close[2] > close[3]) and (close[1] > close[2]) and
+     (close < close[1])
+
+// Three lower closes followed by a higher close
+lowerClosesHigh = (close[3] < close[4]) and (close[2] < close[3])
+     and (close[1] < close[2]) and (close > close[1])
+//==============================
+
+// How to compare the close of real-time bars?
+closeHigher = barstate.isconfirmed and (close > close[1])
+closeLower = barstate.isconfirmed and (close < close[1])
+closeUnchanged = barstate.isconfirmed and (close == close[1])
