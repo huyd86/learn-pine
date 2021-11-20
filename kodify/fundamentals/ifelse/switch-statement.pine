@@ -1,0 +1,27 @@
+// Switch statement alternative: the cascaded if statement
+
+//@version=5
+indicator(title='Switch statement alternative', overlay=false)
+
+// Calculate and plot Relative Strength Index (RSI)
+rsiValue = ta.rsi(close, 5)
+plot(series=rsiValue, color=color.new(color.blue, 10), title='RSI')
+
+// Determine background colour
+bgColour = if rsiValue > 90
+    color.green
+else
+    if rsiValue < 10
+        color.red
+    else
+        if rsiValue > 75
+            color.blue
+        else
+            if rsiValue < 25
+                color.orange
+            else
+                if rsiValue > 45 and rsiValue < 55
+                    color.yellow
+
+// Apply background colour to the chart
+bgcolor(color=bgColour, transp=80)
