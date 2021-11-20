@@ -1,0 +1,5 @@
+- [TradingView’s if statement (if-then): execute script code based on a condition](https://kodify.net/tradingview/if-else/if-statement/)
+- [TradingView’s nested if statement: if inside another if or else code](https://kodify.net/tradingview/if-else/nested-if/)
+- [TradingView’s if/else statement: make code decisions between two options](https://kodify.net/tradingview/if-else/if-else-statement/)
+- [TradingView if statements cannot execute functions? (‘Cannot use in local scope’ error)](https://kodify.net/tradingview/if-else/if-functions/)
+- [Does TradingView Pine have a switch statement?](https://kodify.net/tradingview/if-else/switch-statement/)
