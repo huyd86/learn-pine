@@ -1,0 +1,21 @@
+// Working with the source input type in TradingView Pine
+
+//@version=5
+indicator(title='Correlation with other data series', shorttitle='Correlation')
+
+// Add the inputs
+otherDataSeries = input.symbol(title='Other data series', defval='EURUSD')
+sourceType = input(title='Source type', defval=close)
+corLength = input.int(title='Correlation length', defval=20, minval=5)
+emaLength = input.int(title='EMA length', defval=12, minval=5)
+
+// Get the additional data series
+otherSymbol = request.security(otherDataSeries, timeframe.period, sourceType)
+
+// Calculate correlation and EMA
+corr = ta.correlation(sourceType, otherSymbol, corLength)
+emaCorr = ta.ema(corr, emaLength)
+
+// Plot values
+plot(series=corr)
+plot(series=emaCorr, color=color.new(color.orange, 0))
