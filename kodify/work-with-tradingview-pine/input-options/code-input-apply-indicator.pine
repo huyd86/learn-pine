@@ -1,0 +1,25 @@
+// Example indicator that calculates based on another TradingView indicator
+
+//@version=5
+indicator(title='Example - indicator on indicator', overlay=false)
+
+// Input options
+data = input(title='Data', defval=close)
+lookback = input(title='Lookback period', defval=20)
+lenMA = input(title='Length MA', defval=12)
+
+// Calculate rate of change and its MA
+roc = ta.roc(data, lookback)
+rocMA = ta.sma(roc, lenMA)
+
+// Plot values
+plot(series=roc, title='RoC', color=color.new(color.teal, 0), style=plot.style_histogram, linewidth=4)
+plot(series=rocMA, title='RoC MA', color=color.new(color.orange, 0), linewidth=2)
+
+hline(price=0, color=color.gray, linestyle=hline.style_solid)
+
+// Highlight RoC changes
+crossunder_1 = ta.crossunder(roc, 0)
+bgColour = ta.crossover(roc, 0) ? color.green : crossunder_1 ? color.red : na
+
+bgcolor(color=bgColour, transp=90)
