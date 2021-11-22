@@ -1,0 +1,7 @@
+- [Overview: TradingView’s different plot options explained (with code)](https://kodify.net/tradingview/plots/overview-plots/)
+- [How to code a line, step line, or line with breaks in TradingView Pine?](https://kodify.net/tradingview/plots/line-plot/)
+- [How to code a histogram plot in TradingView?](https://kodify.net/tradingview/plots/histogram-plot/)
+- [How to make a cross (+) plot in TradingView Pine?](https://kodify.net/tradingview/plots/cross-plot/)
+- [How to code a solid circles (•) plot in TradingView Pine scripts?](https://kodify.net/tradingview/plots/circles-plot/)
+- [How do we code area plots in TradingView Pine?](https://kodify.net/tradingview/plots/area-plot/)
+- [How to program a columns plot in TradingView Pine?](https://kodify.net/tradingview/plots/columns-plot/)
